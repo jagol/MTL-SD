@@ -1,0 +1,9 @@
+__pycache__
+.idea
+allennlp_tutorials/*
+data/*/*/*
+mtl_sd_venv
+results
+*.n
+run.py
+mtl_sd/train.py
