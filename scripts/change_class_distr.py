@@ -38,25 +38,37 @@ def change_class_distr(corpus_path: str, target_distr: Dict[str, float], max_ins
                        label_type: str, seed: int = 4) -> None:
     random.seed(seed)
     instances_by_label = defaultdict(list)
+    num_inst_by_label_before = {}
+    num_inst_by_label_after = {}
     with open(os.path.join(corpus_path, 'train.jsonl')) as fin:
         for line in fin:
             instance_dict = json.loads(line)
             instances_by_label[instance_dict[label_type]].append(instance_dict)
     for label in instances_by_label:
+        num_inst_by_label_before[label] = len(instances_by_label[label])
         random.shuffle(instances_by_label[label])
         # compute maximum number of instances for given label
-        max_for_label = int(max_instances * target_distr[label])
-        if len(instances_by_label[label]) < max_for_label:
-            raise Exception(f'For label {label} there are {max_for_label} instances needed but '
-                            f'only {len(instances_by_label[label])} instances exist.')
-        instances_by_label[label] = instances_by_label[label][:max_for_label]
-    distr_repr = ','.join([label + ':' + str(round(ratio, 1))
+        num_inst_by_label_after[label] = int(max_instances * target_distr[label])
+        if num_inst_by_label_before[label] < num_inst_by_label_after[label]:
+            raise Exception(f'For label {label} there are {num_inst_by_label_after[label]} '
+                            f'instances needed but only {len(instances_by_label[label])} '
+                            f'instances exist.')
+        instances_by_label[label] = instances_by_label[label][:num_inst_by_label_after[label]]
+    distr_repr = '_'.join([label + ':' + str(round(ratio, 1))
                            for label, ratio in target_distr.items()])
+    distr_repr += '_' + str(max_instances)
     out_path = os.path.join(corpus_path, f'train_{distr_repr}.jsonl')
     instances_out = []
     for label, instances in instances_by_label.items():
         instances_out.extend(instances)
     random.shuffle(instances_out)
+    print(f"Writing to file {out_path.split('/')[-1]}.")
+    print(f'New Instances per class:')
+    for label in num_inst_by_label_after:
+        print(f'  {label}: {num_inst_by_label_after[label]}')
+    print('Original number of instances per class:')
+    for label in num_inst_by_label_before:
+        print(f'  {label}: {num_inst_by_label_before[label]}')
     with open(out_path, 'w') as fout:
         for instance in instances_out:
             fout.write(json.dumps(instance)+'\n')
@@ -70,20 +82,21 @@ def main(cmd_args: argparse.Namespace) -> None:
         target_distr = json.load(open(args.dfile))
         corpora = target_distr.keys()
     else:
+        target_distr = {}
         if cmd_args.balanced:
-            target_distr = 'balanced'
+            for corpus in cmd_args.corpora:
+                corpus_path = get_corpus_path(data_dir=args.data_dir, corpus=corpus)
+                labels = get_labels(corpus_path=corpus_path, label_type=args.label_type)
+                class_freq = 1 / len(labels)
+                target_distr[corpus] = {label: class_freq for label in labels}
         else:
             raise Exception('Neither a distribution nor --balanced was specified.')
-        corpora = cmd_args.corpora
-    for corpus in corpora:
+    for corpus in cmd_args.corpora:
         corpus_path = get_corpus_path(data_dir=args.data_dir, corpus=corpus)
         if not corpus_path:
             raise Exception(f'Corpus {corpus} not found in data-dir {args.data_dir}.')
-        if target_distr == 'balanced':
-            labels = get_labels(corpus_path=corpus_path, label_type=args.label_type)
-            class_freq = 1 / len(labels)
-            target_distr = {label: class_freq for label in labels}
-        change_class_distr(corpus_path, target_distr, args.max)
+        change_class_distr(corpus_path=corpus_path, target_distr=target_distr[corpus],
+                           max_instances=args.max, label_type=cmd_args.label_type)
 
 
 if __name__ == '__main__':
