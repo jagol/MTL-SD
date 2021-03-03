@@ -1,4 +1,5 @@
 local bert_model_name = "bert-base-cased";
+local train_fname = "train.jsonl";
 local embedding_dim = 768;
 local dropout = 0.1;
 local batch_size = 8;
@@ -44,9 +45,9 @@ local reader_common = {
         }
     },
     "train_data_path": {
-//         "SemEval2016": data_path + "en/SemEval2016Task6/train.jsonl",
-//         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/train.jsonl",
-        "arc": data_path + "en/arc/train.jsonl"
+//         "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
+//         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/" + train_fname,
+        "arc": data_path + "en/arc/" + train_fname
     },
     "validation_data_path": {
 //         "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",

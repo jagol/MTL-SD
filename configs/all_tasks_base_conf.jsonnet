@@ -1,4 +1,5 @@
 local bert_model_name = "bert-base-cased";
+local train_fname = "train.jsonl";
 local embedding_dim = 768;
 local dropout = 0.1;
 local batch_size = 8;
@@ -65,16 +66,16 @@ local reader_common = {
         }
     },
     "train_data_path": {
-        "SemEval2016": data_path + "en/SemEval2016Task6/train.jsonl",
-        "IBMCS": data_path + "en/IBM_CLAIM_STANCE/train.jsonl",
-        "arc": data_path + "en/arc/train.jsonl",
-        "ArgMin": data_path + "en/ArgMin/train.jsonl",
-        "FNC1": data_path + "en/fnc-1/train.jsonl",
-        "IAC": data_path + "en/IAC/train.jsonl",
-        "PERSPECTRUM": data_path + "en/PERSPECTRUM/train.jsonl",
-        "SCD": data_path + "en/SCD/train.jsonl",
-        "SemEval2019": data_path + "en/SemEval2019Task7/train.jsonl",
-        "Snopes": data_path + "en/Snopes/train.jsonl"
+        "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
+        "IBMCS": data_path + "en/IBM_CLAIM_STANCE/" + train_fname,
+        "arc": data_path + "en/arc/" + train_fname,
+        "ArgMin": data_path + "en/ArgMin/" + train_fname,
+        "FNC1": data_path + "en/fnc-1/" + train_fname,
+        "IAC": data_path + "en/IAC/" + train_fname,
+        "PERSPECTRUM": data_path + "en/PERSPECTRUM/" + train_fname,
+        "SCD": data_path + "en/SCD/" + train_fname,
+        "SemEval2019": data_path + "en/SemEval2019Task7/" + train_fname,
+        "Snopes": data_path + "en/Snopes/" + train_fname
     },
     "validation_data_path": {
         "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",
