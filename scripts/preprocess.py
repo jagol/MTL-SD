@@ -103,7 +103,7 @@ class SemEval2016Processor(PreProcessor):
         'dev': 'trialdata-all-annotations.txt',
         'test': 'testdata-taskA-all-annotations.txt'
     }
-    corpus_dir = 'en/SemEval2016Task6/'
+    corpus_dir = 'SemEval2016Task6/'
     label_mapping = {
         'FAVOR': LabelsUnified.PRO,
         'AGAINST': LabelsUnified.CON,
@@ -136,7 +136,7 @@ class IBMCSProcessor(PreProcessor):
     file_names_in = {
         'train_test': 'claim_stance_dataset_v1.csv',
     }
-    corpus_dir = 'en/IBM_CLAIM_STANCE/'
+    corpus_dir = 'IBM_CLAIM_STANCE/'
     label_mapping = {
         'PRO': LabelsUnified.PRO,
         'CON': LabelsUnified.CON
@@ -188,7 +188,7 @@ class ArcProcessor(PreProcessor):
         'train': 'arc_stances_train.csv',
         'test': 'arc_stances_test.csv'
     }
-    corpus_dir = 'en/arc/'
+    corpus_dir = 'arc/'
     label_mapping = {
         'agree': LabelsUnified.PRO,
         'disagree': LabelsUnified.CON,
@@ -247,7 +247,7 @@ class ArcProcessor(PreProcessor):
 
 
 class ArgMinProcessor(PreProcessor):
-    corpus_dir = 'en/ArgMin/'
+    corpus_dir = 'ArgMin/'
     label_mapping = {
         'Argument_for': LabelsUnified.PRO,
         'Argument_against': LabelsUnified.CON,
@@ -296,7 +296,7 @@ class ArgMinProcessor(PreProcessor):
 
 
 class FNC1Processor(PreProcessor):
-    corpus_dir = 'en/fnc-1/'
+    corpus_dir = 'fnc-1/'
     label_mapping = {
         'unrelated': LabelsUnified.UNRELATED,
         'discuss': LabelsUnified.DISCUSS,
@@ -360,7 +360,7 @@ class IACProcessor(PreProcessor):
     Important: Splits (`topic_set_dict`) are reused for comparability.
     """
 
-    corpus_dir = 'en/IAC/'
+    corpus_dir = 'IAC/'
     label_mapping = {
         'pro': LabelsUnified.PRO,
         'anti': LabelsUnified.CON,
@@ -461,7 +461,7 @@ class IACProcessor(PreProcessor):
 
 
 class PERSPECTRUMProcessor(PreProcessor):
-    corpus_dir = 'en/PERSPECTRUM/'
+    corpus_dir = 'PERSPECTRUM/'
     label_mapping = {
         'SUPPORT': LabelsUnified.PRO,
         'UNDERMINE': LabelsUnified.CON,
@@ -522,7 +522,7 @@ class SemEval2019Processor(PreProcessor):
     https://github.com/UKPLab/mdl-stance-robustness/blob/
     68a606556f2492945be4c6623650f5bc17daa36e/data_utils/glue_utils.py#L799
     """
-    corpus_dir = 'en/SemEval2019Task7/'
+    corpus_dir = 'SemEval2019Task7/'
     label_mapping = {
         'support': LabelsUnified.PRO,
         'deny': LabelsUnified.CON,
@@ -663,7 +663,7 @@ class SnopesProcessor(PreProcessor):
         'test': 'ukp_snopes_corpus/datasets/snopes.stance.train.jsonl',
         'data': 'ukp_snopes_corpus/datasets_raw/snopes_corpus_2.csv'
     }
-    corpus_dir = 'en/Snopes/'
+    corpus_dir = 'Snopes/'
     label_mapping = {
         'agree': LabelsUnified.PRO,
         'refute': LabelsUnified.CON,
@@ -738,7 +738,7 @@ class SnopesProcessor(PreProcessor):
 
 
 class SCDProcessor(PreProcessor):
-    corpus_dir = 'en/SCD/'
+    corpus_dir = 'SCD/'
     data_dirs = {
         'abortion': 'stance/abortion',
         'gayRights': 'stance/gayRights',
