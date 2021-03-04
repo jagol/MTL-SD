@@ -1,7 +1,7 @@
 import csv
 import json
 import argparse
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 
 import numpy as np
 from sklearn.metrics import f1_score, accuracy_score, recall_score, precision_score
@@ -56,8 +56,18 @@ def compute_metrics(predictions: List[int], labels: List[int], label_mapping: Di
     }
 
 
-def write_to_file(metrics: Dict[str, float], fpath: str):
-    metrics = {key: round(value, 3) for key, value in metrics.items()}
+def write_to_file(metrics: Dict[str, Union[float, Dict[str, float]]], fpath: str):
+    # before writing, round metric-values to 3 decimals
+    metrics_rounded = {}
+    for metric in metrics:
+        if isinstance(metrics[metric], dict):
+            if metric not in metrics_rounded:
+                metrics_rounded[metric] = {}
+            for submetric in metrics[metric]:
+                metrics_rounded[metric][submetric] = round(metrics[metric][submetric], 3)
+        else:
+            metrics_rounded[metric] = round(metrics[metric], 3)
+
     with open(fpath, 'w') as fout:
         json.dump(metrics, fout, indent=4)
 
