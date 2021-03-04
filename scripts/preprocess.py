@@ -93,7 +93,7 @@ class PreProcessor:
             {'train': train-instances, 'dev': dev-instances}
         """
         random.shuffle(train_dev)
-        split_index = int(len(train_dev) * dev_size)
+        split_index = int(len(train_dev) * (1-dev_size))
         return train_dev[:split_index], train_dev[split_index:]
 
 
