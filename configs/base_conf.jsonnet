@@ -9,7 +9,7 @@ local data_path = if server then "/srv/scratch0/jgoldz/mthesis/data/" else "/hom
 local cuda_device = -1;
 
 local reader_common = {
-        "max_sequence_length": 512,
+        "max_sequence_length": 100,
         "tokenizer": {
             "type": "pretrained_transformer",
             "model_name": bert_model_name
@@ -26,15 +26,15 @@ local reader_common = {
     "dataset_reader": {
         "type": "multitask",
         "readers": {
-//            "SemEval2016": reader_common {
-//                "type": "SemEval2016"
-//            },
+            "SemEval2016": reader_common {
+                "type": "SemEval2016"
+            }
 //            "IBMCS": reader_common {
 //                "type": "IBMCS"
 //            },
-            "arc": reader_common {
-                "type": "arc"
-            }
+//            "arc": reader_common {
+//                "type": "arc"
+//            }
         }
     },
     "data_loader": {
@@ -45,14 +45,14 @@ local reader_common = {
         }
     },
     "train_data_path": {
-//         "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
+         "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
 //         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/" + train_fname,
-        "arc": data_path + "en/arc/" + train_fname
+//        "arc": data_path + "en/arc/" + train_fname
     },
     "validation_data_path": {
-//         "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",
+         "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",
 //         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/dev.jsonl",
-        "arc": data_path + "en/arc/dev.jsonl"
+//        "arc": data_path + "en/arc/dev.jsonl"
     },
     "model": {
         "type": "multitask",
@@ -68,24 +68,24 @@ local reader_common = {
             },
         },
         "heads": {
-//            "SemEval2016": {
-//                "type": "stance_head_two_layers",
-//                "input_dim": embedding_dim,
-//                "output_dim": 3,
-//                "dropout": dropout
-//            },
+            "SemEval2016": {
+                "type": "stance_head_two_layers",
+                "input_dim": embedding_dim,
+                "output_dim": 3,
+                "dropout": dropout
+            }
 //            "IBMCS": {
 //                "type": "stance_head_two_layers",
 //                "input_dim": embedding_dim,
 //                "output_dim": 2,
 //                "dropout": dropout
 //            },
-            "arc": {
-                "type": "stance_head_two_layers",
-                "input_dim": embedding_dim,
-                "output_dim": 4,
-                "dropout": dropout,
-            },
+//            "arc": {
+//                "type": "stance_head_two_layers",
+//                "input_dim": embedding_dim,
+//                "output_dim": 4,
+//                "dropout": dropout,
+//            },
         }
     },
     "trainer": {
@@ -96,7 +96,7 @@ local reader_common = {
             "weight_decay": 0.01
         },
         "serialization_dir": output_dir,
-        "validation_metric": ["+arc_f1_macro"], // ["+SemEval2016_f1_macro", "+IBMCS_f1_macro", "+arc_f1_macro"],
+        "validation_metric": ["+SemEval2016_f1_macro"], // ["+", "+IBMCS_f1_macro", "+arc_f1_macro"],
         "num_epochs": 1,
         "patience": 2,
         "cuda_device": cuda_device
