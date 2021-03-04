@@ -57,6 +57,7 @@ def compute_metrics(predictions: List[int], labels: List[int], label_mapping: Di
 
 
 def write_to_file(metrics: Dict[str, float], fpath: str):
+    metrics = {key: round(value, 3) for key, value in metrics.items()}
     with open(fpath, 'w') as fout:
         json.dump(metrics, fout, indent=4)
 
