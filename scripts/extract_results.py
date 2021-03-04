@@ -15,8 +15,13 @@ Removes old results file to avoid cluttering.
 def extract_results(fpath: str) -> List[List[float]]:
     class_probs = []
     with open(fpath) as fin:
-        for line in fin:
-            class_probs.append(json.loads(line)['arc_probs'])
+        probs_key = None
+        for i, line in enumerate(fin):
+            if i == 0:
+                for key in json.loads(line):
+                    if key.endswith('probs'):
+                        probs_key = key
+            class_probs.append(json.loads(line)[probs_key])
     return class_probs
 
 
