@@ -1,5 +1,6 @@
 local bert_model_name = "bert-base-cased";
 local train_fname = "train.jsonl";
+local dev_fname = "dev.jsonl";
 local embedding_dim = 768;
 local dropout = 0.1;
 local batch_size = 8;
@@ -66,28 +67,28 @@ local reader_common = {
         }
     },
     "train_data_path": {
-        "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
-        "IBMCS": data_path + "en/IBM_CLAIM_STANCE/" + train_fname,
-        "arc": data_path + "en/arc/" + train_fname,
-        "ArgMin": data_path + "en/ArgMin/" + train_fname,
-        "FNC1": data_path + "en/fnc-1/" + train_fname,
-        "IAC": data_path + "en/IAC/" + train_fname,
-        "PERSPECTRUM": data_path + "en/PERSPECTRUM/" + train_fname,
-        "SCD": data_path + "en/SCD/" + train_fname,
-        "SemEval2019": data_path + "en/SemEval2019Task7/" + train_fname,
-        "Snopes": data_path + "en/Snopes/" + train_fname
+        "SemEval2016": data_path + "SemEval2016Task6/" + train_fname,
+        "IBMCS": data_path + "IBM_CLAIM_STANCE/" + train_fname,
+        "arc": data_path + "arc/" + train_fname,
+        "ArgMin": data_path + "ArgMin/" + train_fname,
+        "FNC1": data_path + "fnc-1/" + train_fname,
+        "IAC": data_path + "IAC/" + train_fname,
+        "PERSPECTRUM": data_path + "PERSPECTRUM/" + train_fname,
+        "SCD": data_path + "SCD/" + train_fname,
+        "SemEval2019": data_path + "SemEval2019Task7/" + train_fname,
+        "Snopes": data_path + "Snopes/" + train_fname
     },
     "validation_data_path": {
-        "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",
-        "IBMCS": data_path + "en/IBM_CLAIM_STANCE/dev.jsonl",
-        "arc": data_path + "en/arc/dev.jsonl",
-        "ArgMin": data_path + "en/ArgMin/dev.jsonl",
-        "FNC1": data_path + "en/fnc-1/dev.jsonl",
-        "IAC": data_path + "en/IAC/dev.jsonl",
-        "PERSPECTRUM": data_path + "en/PERSPECTRUM/dev.jsonl",
-        "SCD": data_path + "en/SCD/dev.jsonl",
-        "SemEval2019": data_path + "en/SemEval2019Task7/dev.jsonl",
-        "Snopes": data_path + "en/Snopes/dev.jsonl"
+        "SemEval2016": data_path + "SemEval2016Task6" + dev_fname,
+        "IBMCS": data_path + "IBM_CLAIM_STANCE" + dev_fname,
+        "arc": data_path + "arc" + dev_fname,
+        "ArgMin": data_path + "ArgMin" + dev_fname,
+        "FNC1": data_path + "fnc-1" + dev_fname,
+        "IAC": data_path + "IAC" + dev_fname,
+        "PERSPECTRUM": data_path + "PERSPECTRUM" + dev_fname,
+        "SCD": data_path + "SCD" + dev_fname,
+        "SemEval2019": data_path + "SemEval2019Task7" + dev_fname,
+        "Snopes": data_path + "Snopes" + dev_fname
     },
     "model": {
         "type": "multitask",

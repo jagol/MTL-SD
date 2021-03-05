@@ -43,12 +43,12 @@ local reader_common = {
         }
     },
     "train_data_path": {
-        "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
-        "Snopes": data_path + "en/Snopes/" + train_fname
+        "SemEval2016": data_path + "SemEval2016Task6/" + train_fname,
+        "Snopes": data_path + "Snopes/" + train_fname
     },
     "validation_data_path": {
-         "SemEval2016": data_path + "en/SemEval2016Task6/" + dev_fname,
-         "Snopes": data_path + "en/Snopes/" + dev_fname,
+         "SemEval2016": data_path + "SemEval2016Task6/" + dev_fname,
+         "Snopes": data_path + "Snopes/" + dev_fname,
     },
     "model": {
         "type": "multitask",
