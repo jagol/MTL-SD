@@ -1,5 +1,6 @@
 local bert_model_name = "bert-base-cased";
 local train_fname = "train.jsonl";
+local dev_fname = "dev.jsonl";
 local embedding_dim = 768;
 local dropout = 0.1;
 local batch_size = 8;
@@ -28,13 +29,10 @@ local reader_common = {
         "readers": {
             "SemEval2016": reader_common {
                 "type": "SemEval2016"
-            }
-//            "IBMCS": reader_common {
-//                "type": "IBMCS"
-//            },
-//            "arc": reader_common {
-//                "type": "arc"
-//            }
+            },
+            "Snopes": reader_common {
+                "type": "Snopes"
+            },
         }
     },
     "data_loader": {
@@ -45,14 +43,12 @@ local reader_common = {
         }
     },
     "train_data_path": {
-         "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
-//         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/" + train_fname,
-//        "arc": data_path + "en/arc/" + train_fname
+        "SemEval2016": data_path + "en/SemEval2016Task6/" + train_fname,
+        "Snopes": data_path + "en/Snopes/" + train_fname
     },
     "validation_data_path": {
-         "SemEval2016": data_path + "en/SemEval2016Task6/dev.jsonl",
-//         "IBMCS": data_path + "en/IBM_CLAIM_STANCE/dev.jsonl",
-//        "arc": data_path + "en/arc/dev.jsonl"
+         "SemEval2016": data_path + "en/SemEval2016Task6/" + dev_fname,
+         "Snopes": data_path + "en/Snopes/" + dev_fname,
     },
     "model": {
         "type": "multitask",
@@ -73,19 +69,13 @@ local reader_common = {
                 "input_dim": embedding_dim,
                 "output_dim": 3,
                 "dropout": dropout
-            }
-//            "IBMCS": {
-//                "type": "stance_head_two_layers",
-//                "input_dim": embedding_dim,
-//                "output_dim": 2,
-//                "dropout": dropout
-//            },
-//            "arc": {
-//                "type": "stance_head_two_layers",
-//                "input_dim": embedding_dim,
-//                "output_dim": 4,
-//                "dropout": dropout,
-//            },
+            },
+            "Snopes": {
+                "type": "stance_head_two_layers",
+                "input_dim": embedding_dim,
+                "output_dim": 2,
+                "dropout": dropout
+            },
         }
     },
     "trainer": {
@@ -96,7 +86,8 @@ local reader_common = {
             "weight_decay": 0.01
         },
         "serialization_dir": output_dir,
-        "validation_metric": ["+SemEval2016_f1_macro"], // ["+", "+IBMCS_f1_macro", "+arc_f1_macro"],
+        "validation_metric": ["+SemEval2016_f1_macro", "+Snopes_f1_macro"],
+        // ["+", "+IBMCS_f1_macro", "+arc_f1_macro"],
         "num_epochs": 1,
         "patience": 2,
         "cuda_device": cuda_device
