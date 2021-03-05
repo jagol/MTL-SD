@@ -127,7 +127,7 @@ def write_to_file(metrics: Dict[str, Dict[str, Union[float, Dict[str, float]]]],
                 metrics_rounded[corpus][metric] = round(corpus_metrics[metric], 3)
 
     with open(fpath, 'w') as fout:
-        json.dump(metrics, fout, indent=4)
+        json.dump(metrics_rounded, fout, indent=4)
 
 
 def main(cmd_args):
