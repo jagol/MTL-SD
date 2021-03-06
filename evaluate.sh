@@ -36,3 +36,4 @@ for dataset in ${tasks[@]}; do
 done
 
 python3 scripts/evaluate.py --predictions "results/${1}/predictions/" --labels $2 --evaluation "results/${1}/evaluation.json" --vocab "results/${1}/vocabulary" --label_type $4 --data_dir $data_dir
+python3 scripts/evaluation_to_csv.py -c $1 -d $data_dir
