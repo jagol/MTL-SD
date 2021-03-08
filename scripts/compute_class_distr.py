@@ -125,7 +125,8 @@ def main(args: argparse.Namespace) -> None:
             'test': test_stats_perc,
             'total': total_stats_perc
         },
-        open(f'stats_{path_name}.json', 'w')
+        open(f'stats_{path_name}.json', 'w'),
+        indent=4
     )
 
 
