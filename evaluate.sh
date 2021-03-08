@@ -31,9 +31,16 @@ fi
 for dataset in ${tasks[@]}; do
   data_path="${data_dir}/${dataset}/${2}"
   path_output_file="results/${1}/predictions/${dataset}.jsonl"
+  echo "Now processing dataset: $dataset"
+  echo "Data path set to: $data_path"
+  echo "Path to output file set to: $path_output_file"
+  echo "Predicting..."
   allennlp predict $model_path $data_path --include-package mtl_sd --predictor multitask --cuda-device $3 --output-file $path_output_file --silent
+  echo "Predicting finished. Extracting results."
   python3 scripts/extract_results.py --path $path_output_file
 done
 
+echo "Compute metrics for predictions..."
 python3 scripts/evaluate.py --predictions "results/${1}/predictions/" --labels $2 --evaluation "results/${1}/evaluation.json" --vocab "results/${1}/vocabulary" --label_type $4 --data_dir $data_dir
+echo "Main metrics as csv:"
 python3 scripts/evaluation_to_csv.py -c $1 -d $data_dir

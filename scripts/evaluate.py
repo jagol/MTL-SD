@@ -136,10 +136,10 @@ def main(cmd_args):
         ending = '_extracted.csv'
         fns_extr = [fn for fn in os.listdir(cmd_args.predictions) if fn.endswith(ending)]
         for fname in fns_extr:
-            corpus = fname.split('_')[0]
+            corpus = '_'.join(fname.split('_')[:-1])
             predictions[corpus] = load_predictions(cmd_args.predictions, fname=fname)
     elif os.path.isfile(cmd_args.predictions):
-        corpus = cmd_args.path.split('_')[0]
+        corpus = '_'.join(cmd_args.path.split('_')[:-1])
         predictions[corpus] = load_predictions(cmd_args.predictions)
     labels, label_mappings = load_labels(
         corpora=list(predictions.keys()),
