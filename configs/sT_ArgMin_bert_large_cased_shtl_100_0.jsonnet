@@ -7,7 +7,7 @@ local batch_size = 4;
 local output_dir = "results/sT_ArgMin_bert_large_shtl_100_0/";
 local server = true;
 local data_path = if server then "/srv/scratch0/jgoldz/mthesis/data/" else "/home/janis/Dropbox/UZH/UFSP_Digital_Religion/Master_Thesis/thesis_code/data/";
-local cuda_device = 3;
+local cuda_device = 4;
 
 local reader_common = {
         "max_sequence_length": 100,
