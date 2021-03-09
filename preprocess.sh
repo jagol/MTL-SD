@@ -10,3 +10,4 @@ python3 scripts/preprocess.py -c PERSPECTRUM -s $1 -d data/
 python3 scripts/preprocess.py -c SCD -s $1 -d data/
 python3 scripts/preprocess.py -c SemEval2019 -s $1 -d data/
 python3 scripts/preprocess.py -c Snopes -s $1 -d data/
+bash shuffle_datasets.sh
