@@ -47,9 +47,9 @@ class StanceHead(Head):
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
         # Shape: (batch_size, num_tokens, embedding_dim)
-        last_cls = token_ids_encoded[:, 1, :]
+        cls_tokens = token_ids_encoded[:, 0, :]
         # Shape: (batch_size, num_labels)
-        logits = self.layers(last_cls)
+        logits = self.layers(cls_tokens)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=1)
         output = {'probs': probs}
@@ -87,9 +87,9 @@ class StanceHeadTwoLayers(Head):
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
         # Shape: (batch_size, num_tokens, embedding_dim)
-        last_cls = token_ids_encoded[:, 1, :]
+        cls_tokens = token_ids_encoded[:, 0, :]
         # Shape: (batch_size, num_labels)
-        logits = self.layers(last_cls)
+        logits = self.layers(cls_tokens)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=1)
         output = {'probs': probs}
@@ -134,9 +134,9 @@ class StanceClassifier(Model):
                 label: torch.Tensor = None) -> Dict[str, torch.Tensor]:
         embedded_text = self.embedder(text_field)
         # Shape: (batch_size, encoding_dim)
-        last_cls = embedded_text[:, 1, :]
+        cls_tokens = embedded_text[:, 0, :]
         # Shape: (batch_size, num_labels)
-        logits = self.head_one_layer(last_cls)
+        logits = self.head_one_layer(cls_tokens)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=1)
         # Shape: (1,)
