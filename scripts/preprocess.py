@@ -251,7 +251,7 @@ class ArgMinProcessor(PreProcessor):
     label_mapping = {
         'Argument_for': LabelsUnified.PRO,
         'Argument_against': LabelsUnified.CON,
-        'NoArgument': LabelsUnified.NOARGUMENT,
+        'NoArgument': LabelsUnified.NOARGUMENT,  # Should never be used, since filtered out.
     }
 
     def __init__(self, data_dir: str):
@@ -276,6 +276,8 @@ class ArgMinProcessor(PreProcessor):
             next(f)
             for line in f:
                 fields = line.strip('\n').split('\t')
+                if fields[5] == 'NoArgument':
+                    continue
                 instance = {
                     Fields.ID: self.instance_id,
                     Fields.TEXT1: fields[0],  # row['topic'],
