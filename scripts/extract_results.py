@@ -3,6 +3,7 @@ import csv
 import json
 import argparse
 from typing import List
+from preprocess import *
 
 
 """Script to extract relevant results from results-file of allennlp predict-command.
@@ -13,6 +14,7 @@ Removes old results file to avoid cluttering.
 
 
 def extract_results(fpath: str) -> List[List[float]]:
+    num_classes = None
     class_probs = []
     with open(fpath) as fin:
         probs_key = None
@@ -21,7 +23,17 @@ def extract_results(fpath: str) -> List[List[float]]:
                 for key in json.loads(line):
                     if key.endswith('probs'):
                         probs_key = key
-            class_probs.append(json.loads(line)[probs_key])
+                        # temporary hack to load only class weights and not the numbers that
+                        # come after (probably model weights) (bug in allennlp?)
+                        corpus = key.split('_')[0]
+                        if corpus == 'SemEval2016Task6':
+                            corpus = 'SemEval2016'
+                        elif corpus == 'SemEval2019Task7':
+                            corpus = 'SemEval2019'
+                        elif corpus == 'fnc_1':
+                            corpus = 'FNC1'
+                        num_classes = len(CORPUS_NAME_TO_PROCESSOR[corpus].label_mapping.keys())
+            class_probs.append(json.loads(line)[probs_key][:num_classes])
     return class_probs
 
 
