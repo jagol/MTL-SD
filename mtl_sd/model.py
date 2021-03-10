@@ -30,6 +30,8 @@ class SDMTLBackBone(Backbone):
 @Head.register('stance_head')
 class StanceHead(Head):
 
+    default_predictor = 'head_predictor'
+
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
