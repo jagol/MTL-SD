@@ -38,8 +38,7 @@ class StanceDetectionReader(DatasetReader):
         target_tokens = self.tokenizer.tokenize(target)
         text_tokens = self.tokenizer.tokenize(text)
         if len(target_tokens) + len(text_tokens) > self.max_sequence_length - 3:
-            max_len_text_tokens = 509 - len(target_tokens)
-            # TODO: remove hardcoded max-length (509) -> e.g. for bert-large models
+            max_len_text_tokens = (self.max_sequence_length - 3) - len(target_tokens)
             text_tokens = text_tokens[:max_len_text_tokens]
         combined_tokens = self.tokenizer.add_special_tokens(target_tokens, text_tokens)
         text_field = TextField(combined_tokens, self.token_indexers)
