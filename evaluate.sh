@@ -4,7 +4,7 @@
 # $3: cuda-device
 # $4: label-type, "label_orig" or "label_uni" (check that it's same as specified in StanceDetectionReader)
 # $5: local or rattle
-# $6: "all" or list of corpora to test
+# $6: "all" or list of corpora to test, if no corpus arg is given predicting is skipped.
 
 # example: bash evaluate.sh base_conf test.jsonl -1 label_orig local SemEval2016Task6
 
@@ -14,6 +14,9 @@ mkdir "results/${1}/predictions/"
 if [[ "$6" == "all" ]]
 then
   tasks=("arc" "ArgMin" "fnc-1" "IAC" "IBM_CLAIM_STANCE" "multi-target-sd" "PERSPECTRUM" "SCD" "SemEval2016Task6" "SemEval2019Task7" "Snopes")
+elif [[ "$6" == "" ]]
+then
+  tasks=()
 else
   tasks=${@:6};
 fi
