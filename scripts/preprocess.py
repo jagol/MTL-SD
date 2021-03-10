@@ -107,7 +107,6 @@ class SemEval2016Processor(PreProcessor):
     label_mapping = {
         'FAVOR': LabelsUnified.PRO,
         'AGAINST': LabelsUnified.CON,
-        'OTHER': LabelsUnified.OTHER,
         'NONE': LabelsUnified.NONE
     }
 
@@ -838,19 +837,21 @@ def main(args: argparse.Namespace):
     print(f'Finished processing {args.corpus}.')
 
 
+CORPUS_NAME_TO_PROCESSOR = {
+    'SemEval2016': SemEval2016Processor,
+    'IBMCS': IBMCSProcessor,
+    'arc': ArcProcessor,
+    'ArgMin': ArgMinProcessor,
+    'FNC1': FNC1Processor,
+    'IAC': IACProcessor,
+    'PERSPECTRUM': PERSPECTRUMProcessor,
+    'SCD': SCDProcessor,
+    'SemEval2019': SemEval2019Processor,
+    'Snopes': SnopesProcessor
+}
+
+
 if __name__ == '__main__':
-    CORPUS_NAME_TO_PROCESSOR = {
-        'SemEval2016': SemEval2016Processor,
-        'IBMCS': IBMCSProcessor,
-        'arc': ArcProcessor,
-        'ArgMin': ArgMinProcessor,
-        'FNC1': FNC1Processor,
-        'IAC': IACProcessor,
-        'PERSPECTRUM': PERSPECTRUMProcessor,
-        'SCD': SCDProcessor,
-        'SemEval2019': SemEval2019Processor,
-        'Snopes': SnopesProcessor
-    }
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--corpus', type=str, choices=list(CORPUS_NAME_TO_PROCESSOR.keys()),
                         help='Name of corpus to process.')
