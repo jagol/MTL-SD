@@ -30,7 +30,7 @@ class StanceHead(Head):
 
     default_predictor = 'head_predictor'
 
-    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
+    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.0,
                  class_weights: List[float] = None):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
@@ -77,7 +77,7 @@ class StanceHeadTwoLayers(Head):
 
     default_predictor = 'head_predictor'
 
-    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
+    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.0,
                  class_weights: List[float] = None):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
