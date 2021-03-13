@@ -157,7 +157,7 @@ def write_confms_to_file(conf_matrices: Dict[str, List[List[int]]],
             writer = csv.writer(fout)
             writer.writerow(['label'] + header)
             for i, row in enumerate(matrix):
-                writer.writerow([header[i]] + [str(num) for num in row])
+                writer.writerow(['true_' + header[i]] + [str(num) for num in row])
 
 
 def main(cmd_args):
