@@ -32,7 +32,8 @@ class StanceHead(Head):
 
     default_predictor = 'head_predictor'
 
-    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1):
+    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
+                 class_weights: torch.FloatTensor = None):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -45,6 +46,11 @@ class StanceHead(Head):
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
         }
+        if class_weights:
+            self.class_weights = class_weights
+            self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
+        else:
+            self.cross_ent = torch.nn.CrossEntropyLoss()
 
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
@@ -58,7 +64,7 @@ class StanceHead(Head):
         if label is not None:
             self.metrics['accuracy'](logits, label)
             self.metrics['f1_macro'](logits, label)
-            output['loss'] = torch.nn.functional.cross_entropy(logits, label)
+            output['loss'] = self.cross_ent(logits, label)
         return output
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
@@ -73,7 +79,8 @@ class StanceHeadTwoLayers(Head):
 
     default_predictor = 'head_predictor'
 
-    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1):
+    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
+                 class_weights: torch.FloatTensor = None):
         super().__init__(vocab=vocab)
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
@@ -85,6 +92,11 @@ class StanceHeadTwoLayers(Head):
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
         }
+        if class_weights:
+            self.class_weights = class_weights
+            self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
+        else:
+            self.cross_ent = torch.nn.CrossEntropyLoss()
 
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
@@ -98,59 +110,11 @@ class StanceHeadTwoLayers(Head):
         if label is not None:
             self.metrics['accuracy'](logits, label)
             self.metrics['f1_macro'](logits, label)
-            output['loss'] = torch.nn.functional.cross_entropy(logits, label)
+            output['loss'] = self.cross_ent(logits, label)
         return output
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         return {
             'accuracy': self.metrics['accuracy'].get_metric(reset=reset),
             'f1_macro': self.metrics['f1_macro'].get_metric(reset=reset)['fscore']
-        }
-
-
-@Model.register('stance_classifier')
-class StanceClassifier(Model):
-    def __init__(self,
-                 embedder: TextFieldEmbedder,
-                 encoder: Seq2VecEncoder,
-                 vocab: Vocabulary = None):
-        super().__init__(vocab)
-        self.embedder = embedder
-        self.encoder = encoder
-        self.dr_ratio = 0.1
-        num_labels = vocab.get_vocab_size('labels')
-        self.head_one_layer = torch.nn.Linear(encoder.get_output_dim(), num_labels)
-        self.head_two_layers = torch.nn.Sequential(
-            torch.nn.Dropout(self.dr_ratio),
-            torch.nn.Linear(encoder.get_output_dim(), encoder.get_output_dim()),
-            torch.nn.ReLU(inplace=True),
-            torch.nn.Linear(encoder.get_output_dim(), num_labels)
-        )
-        self.metrics = {
-            'accuracy': CategoricalAccuracy(),
-            'f1_macro': FBetaMeasure(average='macro')
-        }
-
-    def forward(self,
-                text_field: Dict[str, torch.Tensor],
-                label: torch.Tensor = None) -> Dict[str, torch.Tensor]:
-        embedded_text = self.embedder(text_field)
-        # Shape: (batch_size, encoding_dim)
-        cls_tokens = embedded_text[:, 0, :]
-        # Shape: (batch_size, num_labels)
-        logits = self.head_one_layer(cls_tokens)
-        # Shape: (batch_size, num_labels)
-        probs = torch.nn.functional.softmax(logits, dim=1)
-        # Shape: (1,)
-        output = {'probs': probs}
-        if label is not None:
-            self.metrics['accuracy'](logits, label)
-            self.metrics['f1_macro'](logits, label)
-            output['loss'] = torch.nn.functional.cross_entropy(logits, label)
-        return output
-
-    def get_metrics(self, reset: bool = False) -> Dict[str, float]:
-        return {
-            'f1_macro': self.metrics['f1_macro'].get_metric(reset=reset)['fscore'],
-            'accuracy': self.metrics['accuracy'].get_metric(reset=reset)
         }
