@@ -1,11 +1,9 @@
-from typing import Dict
+from typing import Dict, List
 
 import torch
 from allennlp.data import Vocabulary
-from allennlp.models import Model
 from allennlp.models.heads import Head
 from allennlp.modules.backbones import Backbone
-from allennlp.modules import TextFieldEmbedder, Seq2VecEncoder
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.training.metrics import CategoricalAccuracy, FBetaMeasure
 
@@ -33,21 +31,21 @@ class StanceHead(Head):
     default_predictor = 'head_predictor'
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
-                 class_weights: torch.FloatTensor = None):
+                 class_weights: List[float] = None):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.dropout = dropout
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
-            torch.nn.Linear(input_dim, input_dim),
+            torch.nn.Linear(self.input_dim, self.output_dim),
         )
         self.metrics = {
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
         }
         if class_weights:
-            self.class_weights = class_weights
+            self.class_weights = torch.FloatTensor(class_weights)
             self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.cross_ent = torch.nn.CrossEntropyLoss()
@@ -80,20 +78,22 @@ class StanceHeadTwoLayers(Head):
     default_predictor = 'head_predictor'
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.1,
-                 class_weights: torch.FloatTensor = None):
+                 class_weights: List[float] = None):
         super().__init__(vocab=vocab)
+        self.input_dim = input_dim
+        self.output_dim = output_dim
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
-            torch.nn.Linear(input_dim, input_dim),
+            torch.nn.Linear(self.input_dim, self.input_dim),
             torch.nn.ReLU(inplace=True),
-            torch.nn.Linear(input_dim, output_dim)
+            torch.nn.Linear(self.input_dim, output_dim)
         )
         self.metrics = {
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
         }
         if class_weights:
-            self.class_weights = class_weights
+            self.class_weights = torch.FloatTensor(class_weights)
             self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.cross_ent = torch.nn.CrossEntropyLoss()
