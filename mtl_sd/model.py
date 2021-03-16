@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import torch
 from allennlp.data import Vocabulary
@@ -78,7 +78,7 @@ class StanceHeadTwoLayers(Head):
     default_predictor = 'head_predictor'
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.0,
-                 class_weights: List[float] = None):
+                 class_weights: Union[List[float], None] = None):
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
         self.output_dim = output_dim

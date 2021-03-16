@@ -13,7 +13,7 @@ mkdir "results/${1}/predictions/"
 
 if [[ "$6" == "all" ]]
 then
-  tasks=("arc" "ArgMin" "fnc-1" "IAC" "IBM_CLAIM_STANCE" "PERSPECTRUM" "SCD" "SemEval2016Task6" "SemEval2019Task7" "Snopes")
+  tasks=("arc" "ArgMin" "FNC1" "IAC" "IBMCS" "PERSPECTRUM" "SCD" "SemEval2016Task6" "SemEval2019Task7" "Snopes")
 elif [[ "$6" == "" ]]
 then
   tasks=()

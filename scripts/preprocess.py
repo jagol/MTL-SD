@@ -97,7 +97,7 @@ class PreProcessor:
         return train_dev[:split_index], train_dev[split_index:]
 
 
-class SemEval2016Processor(PreProcessor):
+class SemEval2016Task6Processor(PreProcessor):
     file_names_in = {
         'train': 'trainingdata-all-annotations.txt',
         'dev': 'trialdata-all-annotations.txt',
@@ -127,7 +127,7 @@ class SemEval2016Processor(PreProcessor):
                     Fields.TEXT2: row['Tweet'],
                     Fields.LABEL_ORIGINAL: row['Stance'],
                     Fields.LABEL_UNIFIED: self.label_mapping[row['Stance']],
-                    Fields.TASK: 'SemEval2016'
+                    Fields.TASK: 'SemEval2016Task6'
                 }) + '\n')
 
 
@@ -135,7 +135,7 @@ class IBMCSProcessor(PreProcessor):
     file_names_in = {
         'train_test': 'claim_stance_dataset_v1.csv',
     }
-    corpus_dir = 'IBM_CLAIM_STANCE/'
+    corpus_dir = 'IBMCS/'
     label_mapping = {
         'PRO': LabelsUnified.PRO,
         'CON': LabelsUnified.CON
@@ -297,7 +297,7 @@ class ArgMinProcessor(PreProcessor):
 
 
 class FNC1Processor(PreProcessor):
-    corpus_dir = 'fnc-1/'
+    corpus_dir = 'FNC1/'
     label_mapping = {
         'unrelated': LabelsUnified.UNRELATED,
         'discuss': LabelsUnified.DISCUSS,
@@ -518,7 +518,7 @@ class PERSPECTRUMProcessor(PreProcessor):
         return train_set, dev_set, test_set
 
 
-class SemEval2019Processor(PreProcessor):
+class SemEval2019Task7Processor(PreProcessor):
     """Code of this class is partly inspired/taken over from:
     https://github.com/UKPLab/mdl-stance-robustness/blob/
     68a606556f2492945be4c6623650f5bc17daa36e/data_utils/glue_utils.py#L799
@@ -600,7 +600,7 @@ class SemEval2019Processor(PreProcessor):
             Fields.TEXT2: texts[1],
             Fields.LABEL_ORIGINAL: label,
             Fields.LABEL_UNIFIED: self.label_mapping[label],
-            Fields.TASK: 'SemEval2019'
+            Fields.TASK: 'SemEval2019Task7'
         }
 
     @staticmethod
@@ -838,15 +838,15 @@ def main(args: argparse.Namespace):
 
 
 CORPUS_NAME_TO_PROCESSOR = {
-    'SemEval2016': SemEval2016Processor,
-    'IBMCS': IBMCSProcessor,
     'arc': ArcProcessor,
     'ArgMin': ArgMinProcessor,
     'FNC1': FNC1Processor,
     'IAC': IACProcessor,
+    'IBMCS': IBMCSProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
-    'SemEval2019': SemEval2019Processor,
+    'SemEval2016Task6': SemEval2016Task6Processor,
+    'SemEval2019Task7': SemEval2019Task7Processor,
     'Snopes': SnopesProcessor
 }
 
