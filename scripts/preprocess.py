@@ -791,7 +791,7 @@ class SCDProcessor(PreProcessor):
 
     def _load_instances(self, data_path: str) -> instances_type:
         instances = []
-        stances = ['1+', '-1']
+        stances = ['+1', '-1']
         topics = ['abortion', 'gayRights', 'marijuana', 'obama']
         for topic in topics:
             tpath = osjoin(data_path, topic)
