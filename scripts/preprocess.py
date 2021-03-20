@@ -10,6 +10,7 @@ from typing import List, Dict, Tuple, Any, DefaultDict, Set
 
 import numpy as np
 
+
 """
 Preprocess a corpus.
 
@@ -24,6 +25,7 @@ The devset is taken from the trainset if it does not yet exist.
 Usage:
 python3 preprocess.py -c <corpus-name> -s <dev-size-relative-to-train> -d <path_data_dir>
 """
+
 
 instances_type = List[Dict[str, str]]
 tws_type = Dict[str, Tuple[str, str]]

@@ -7,3 +7,5 @@ results
 *.n
 run.py
 mtl_sd/train.py
+temp_bash/*
+data_distrs/*
