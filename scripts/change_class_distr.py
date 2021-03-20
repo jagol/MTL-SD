@@ -87,7 +87,7 @@ def main(cmd_args: argparse.Namespace) -> None:
         corpora = target_distr.keys()
     elif cmd_args.dfile:
         target_distr = json.load(open(args.dfile))
-        corpora = target_distr.keys()
+        corpora = cmd_args.corpora
     else:
         target_distr = {}
         corpora = cmd_args.corpora
