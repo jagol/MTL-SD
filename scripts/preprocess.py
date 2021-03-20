@@ -749,7 +749,6 @@ class SCDProcessor(PreProcessor):
     label_mapping = {
         '+1': LabelsUnified.PRO,
         '-1': LabelsUnified.CON,
-        '': LabelsUnified.NONE
     }
     data_splits = {
         'abortion': 'train',
@@ -792,6 +791,7 @@ class SCDProcessor(PreProcessor):
 
     def _load_instances(self, data_path: str) -> instances_type:
         instances = []
+        stances = ['1+', '-1']
         topics = ['abortion', 'gayRights', 'marijuana', 'obama']
         for topic in topics:
             tpath = osjoin(data_path, topic)
@@ -801,6 +801,9 @@ class SCDProcessor(PreProcessor):
                     post = f_data.read().strip('\n')
                 with open(osjoin(tpath, post_id_to_files[post_id]['meta'])) as f_meta:
                     stance = f_meta.readlines()[2].strip().split('=')[1]
+                    if stance not in stances:
+                        # The corpus contains one instance without an annotation, skip it.
+                        continue
                 instances.append({
                     Fields.ID: f'{topic}_{post_id}',
                     Fields.TEXT1: self.topic_to_text1[topic],
