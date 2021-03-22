@@ -914,6 +914,56 @@ class SSTProcessor(PreProcessor):
             return 'pro'
 
 
+class TargetDepSAProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/TargetDepSA/train.raw',
+        'test': 'data/TargetDepSA/test.raw',
+    }
+    file_names_out = {
+        'train': 'data/TargetDepSA/train.jsonl',
+        'dev': 'data/TargetDepSA/dev.jsonl',
+        'test': 'data/TargetDepSA/test.jsonl',
+    }
+    corpus_dir = 'TargetDepSA/'
+    label_mapping = {
+        '1': LabelsUnified.PRO,
+        '-1': LabelsUnified.CON,
+        '0': LabelsUnified.OTHER
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_dev_data = self._load(self.file_names_in['train'])
+        train_data, dev_data = self._split_train_dev_set(train_dev_data, dev_size)
+        test_data = self._load(self.file_names_in['test'])
+        self._write_to_jsonlfile(train_data, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_data, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_data, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> List[Dict[str, Union[int, str]]]:
+        instances = []
+        with open(fpath_in) as fin:
+            cur_sent = ''
+            cur_target = ''
+            cur_label = ''
+            for i, line in enumerate(fin):
+                if i % 3 == 0:
+                    if cur_sent:
+                        instances.append({
+                            Fields.ID: int(i / 3),
+                            Fields.TEXT1: cur_target,
+                            Fields.TEXT2: cur_sent.replace('$T$', cur_target),
+                            Fields.LABEL_ORIGINAL: cur_label,
+                            Fields.LABEL_UNIFIED: self.label_mapping[cur_label],
+                            Fields.TASK: 'TargetDepSA'
+                        })
+                    cur_sent = line.strip()
+                elif (i + 2) % 3 == 0:
+                    cur_target = line.strip()
+                elif (i + 1) % 3 == 0:
+                    cur_label = line.strip()
+        return instances
+
+
 def main(args: argparse.Namespace):
     print(f'Start processing {args.corpus}.')
     print(f'  data-dir: {args.data_dir}')
@@ -936,7 +986,8 @@ CORPUS_NAME_TO_PROCESSOR = {
     'SemEval2016Task6': SemEval2016Task6Processor,
     'SemEval2019Task7': SemEval2019Task7Processor,
     'Snopes': SnopesProcessor,
-    'SST': SSTProcessor
+    'SST': SSTProcessor,
+    'TargetDepSA': TargetDepSAProcessor
 }
 
 
