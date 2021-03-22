@@ -6,6 +6,7 @@ import json
 import random
 import argparse
 from collections import defaultdict
+from tqdm import tqdm
 from typing import List, Dict, Tuple, Any, DefaultDict, Set
 
 import numpy as np
@@ -463,6 +464,41 @@ class IACProcessor(PreProcessor):
         return train, dev, test
 
 
+class MultiNLIProcessor(PreProcessor):
+    corpus_dir = 'MultiNLI'
+    label_mapping = {
+        'neutral': LabelsUnified.OTHER,
+        'entailment': LabelsUnified.PRO,
+        'contradiction': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        ptrain_in = osjoin(self.corpus_path, 'multinli_1.0_train.jsonl')
+        ptrain_out = osjoin(self.corpus_path, 'train.jsonl')
+        pdev_in_matched = osjoin(self.corpus_path, 'multinli_1.0_dev_matched.jsonl')
+        pdev_in_mismatched = osjoin(self.corpus_path, 'multinli_1.0_dev_mismatched.jsonl')
+        pdev_out = osjoin(self.corpus_path, 'dev.jsonl')
+        self._process([ptrain_in], ptrain_out)
+        self._process([pdev_in_matched, pdev_in_mismatched], pdev_out)
+
+    def _process(self, paths_in: List[str], path_out: str):
+        fout = open(path_out, 'w')
+        for path in paths_in:
+            with open(path) as fin:
+                for line in tqdm(fin):
+                    instance = json.loads(line)
+                    if instance['gold_label'] not in self.label_mapping.keys():
+                        continue
+                    fout.write(json.dumps({
+                        Fields.ID: instance['pairID'],
+                        Fields.TEXT1: instance['sentence1'],
+                        Fields.TEXT2: instance['sentence2'],
+                        Fields.LABEL_ORIGINAL: instance['gold_label'],
+                        Fields.LABEL_UNIFIED: self.label_mapping[instance['gold_label']],
+                        Fields.TASK: 'MultiNLI'
+                    }) + '\n')
+
+
 class PERSPECTRUMProcessor(PreProcessor):
     corpus_dir = 'PERSPECTRUM/'
     label_mapping = {
@@ -848,6 +884,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'FNC1': FNC1Processor,
     'IAC': IACProcessor,
     'IBMCS': IBMCSProcessor,
+    'MultiNLI': MultiNLIProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
     'SemEval2016Task6': SemEval2016Task6Processor,
