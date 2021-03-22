@@ -7,7 +7,7 @@ import random
 import argparse
 from collections import defaultdict
 from tqdm import tqdm
-from typing import List, Dict, Tuple, Any, DefaultDict, Set
+from typing import List, Dict, Tuple, Any, DefaultDict, Set, Union
 
 import numpy as np
 
@@ -868,6 +868,52 @@ class SCDProcessor(PreProcessor):
         return post_id_to_files
 
 
+class SSTProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/SST/train_raw.jsonl',
+        'dev': 'data/SST/dev_raw.jsonl',
+        'test': 'data/SST/test_raw.jsonl',
+    }
+    file_names_out = {
+        'train': 'data/SST/train.jsonl',
+        'dev': 'data/SST/dev.jsonl',
+        'test': 'data/SST/test.jsonl',
+    }
+    corpus_dir = 'SST/'
+    label_mapping = {
+        'pro': LabelsUnified.PRO,
+        'con': LabelsUnified.CON,
+    }
+
+    def process(self, dev_size: float) -> None:
+        self._process(self.file_names_in['train'], self.file_names_out['train'])
+        self._process(self.file_names_in['dev'], self.file_names_out['dev'])
+        self._process(self.file_names_in['test'], self.file_names_out['test'])
+
+    def _process(self, fpath_in: str, fpath_out: str) -> None:
+        with open(fpath_in) as fin, open(fpath_out, 'w') as fout:
+            for i, line in enumerate(fin):
+                instance = json.loads(line)
+                bin_label = self._get_binary_label(instance)
+                # fine_label = self._get_fine_label(instance)
+                fout.write(json.dumps({
+                    Fields.ID: i,
+                    Fields.TEXT1: '',
+                    Fields.TEXT2: instance['sentence'],
+                    Fields.LABEL_ORIGINAL: bin_label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[bin_label],
+                    Fields.TASK: 'SST'
+                }) + '\n')
+
+    @staticmethod
+    def _get_binary_label(instance: Dict[str, Union[float, str]]) -> str:
+        score = instance['label']
+        if score < 0.5:
+            return 'con'
+        else:
+            return 'pro'
+
+
 def main(args: argparse.Namespace):
     print(f'Start processing {args.corpus}.')
     print(f'  data-dir: {args.data_dir}')
@@ -889,7 +935,8 @@ CORPUS_NAME_TO_PROCESSOR = {
     'SCD': SCDProcessor,
     'SemEval2016Task6': SemEval2016Task6Processor,
     'SemEval2019Task7': SemEval2019Task7Processor,
-    'Snopes': SnopesProcessor
+    'Snopes': SnopesProcessor,
+    'SST': SSTProcessor
 }
 
 
