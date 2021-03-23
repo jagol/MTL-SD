@@ -547,7 +547,7 @@ class MultiTargetSDProcessor(PreProcessor):
         'NONE': LabelsUnified.NONE
     }
     file_names_in = {
-        'tweets': 'tweets_out.csv',
+        'tweets': 'multi_target_sd_tweets.csv',
         'labels': 'all_data_tweet_id.txt'
     }
     file_names_out = {
@@ -573,6 +573,7 @@ class MultiTargetSDProcessor(PreProcessor):
             label_reader = csv.reader(lf)
             tweet_dict = {}
             label_dict = {}
+            next(label_reader)  # skip header
             for row in label_reader:
                 label_dict[row[0]] = {
                     'target1': row[1],
@@ -582,12 +583,13 @@ class MultiTargetSDProcessor(PreProcessor):
                     'split': row[5]
                 }
             for row in tweet_reader:
-                tweet_dict[row[0]] = row[1]
+                if row:
+                    tweet_dict[row[0]] = row[1]
         tweet_ids_existing = [twid for twid in label_dict if twid in tweet_dict]
         for tweet_id in tweet_ids_existing:
             label_entry = label_dict[tweet_id]
             instance1 = {
-                Fields.ID: tweet_id,
+                Fields.ID: f'{tweet_id}_{label_entry["target1"].replace(" ", "-")}',
                 Fields.TEXT1: label_entry['target1'],
                 Fields.TEXT2: tweet_dict[tweet_id],
                 Fields.LABEL_ORIGINAL: label_entry['stance1'],
@@ -595,7 +597,7 @@ class MultiTargetSDProcessor(PreProcessor):
                 Fields.TASK: 'MultiTargetSD'
             }
             instance2 = {
-                Fields.ID: tweet_id,
+                Fields.ID: f'{tweet_id}_{label_entry["target2"].replace(" ", "-")}',
                 Fields.TEXT1: label_entry['target2'],
                 Fields.TEXT2: tweet_dict[tweet_id],
                 Fields.LABEL_ORIGINAL: label_entry['stance2'],
@@ -1099,7 +1101,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'IBMCS': IBMCSProcessor,
     'IMDB': IMDBProcessor,
     'MultiNLI': MultiNLIProcessor,
-    'MuliTargetSD': MultiTargetSDProcessor,
+    'MultiTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
     'SemEval2016Task6': SemEval2016Task6Processor,
