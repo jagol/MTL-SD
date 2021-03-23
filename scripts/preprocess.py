@@ -539,6 +539,83 @@ class MultiNLIProcessor(PreProcessor):
                     }) + '\n')
 
 
+class MultiTargetSDProcessor(PreProcessor):
+    corpus_dir = 'MultiTargetSD'
+    label_mapping = {
+        'FAVOR': LabelsUnified.PRO,
+        'AGAINST': LabelsUnified.CON,
+        'NONE': LabelsUnified.NONE
+    }
+    file_names_in = {
+        'tweets': 'tweets_out.csv',
+        'labels': 'all_data_tweet_id.txt'
+    }
+    file_names_out = {
+        'train': 'data/MultiTargetSD/train.jsonl',
+        'dev': 'data/MultiTargetSD/dev.jsonl',
+        'test': 'data/MultiTargetSD/test.jsonl',
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_set, dev_set, test_set = self._load_tweets(
+            tweets_file=osjoin(self.corpus_path, self.file_names_in['tweets']),
+            label_file=osjoin(self.corpus_path, self.file_names_in['labels'])
+        )
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load_tweets(self, tweets_file: str, label_file: str
+                     ) -> Tuple[instances_type, instances_type, instances_type]:
+        train_set, dev_set, test_set = [], [], []
+        with open(tweets_file) as tf, open(label_file) as lf:
+            tweet_reader = csv.reader(tf)
+            label_reader = csv.reader(lf)
+            tweet_dict = {}
+            label_dict = {}
+            for row in label_reader:
+                label_dict[row[0]] = {
+                    'target1': row[1],
+                    'stance1': row[2],
+                    'target2': row[3],
+                    'stance2': row[4],
+                    'split': row[5]
+                }
+            for row in tweet_reader:
+                tweet_dict[row[0]] = row[1]
+        tweet_ids_existing = [twid for twid in label_dict if twid in tweet_dict]
+        for tweet_id in tweet_ids_existing:
+            label_entry = label_dict[tweet_id]
+            instance1 = {
+                Fields.ID: tweet_id,
+                Fields.TEXT1: label_entry['target1'],
+                Fields.TEXT2: tweet_dict[tweet_id],
+                Fields.LABEL_ORIGINAL: label_entry['stance1'],
+                Fields.LABEL_UNIFIED: self.label_mapping[label_entry['stance1']],
+                Fields.TASK: 'MultiTargetSD'
+            }
+            instance2 = {
+                Fields.ID: tweet_id,
+                Fields.TEXT1: label_entry['target2'],
+                Fields.TEXT2: tweet_dict[tweet_id],
+                Fields.LABEL_ORIGINAL: label_entry['stance2'],
+                Fields.LABEL_UNIFIED: self.label_mapping[label_entry['stance2']],
+                Fields.TASK: 'MultiTargetSD'
+            }
+            if label_dict[tweet_id]['split'] == 'Train':
+                train_set.append(instance1)
+                train_set.append(instance2)
+            elif label_dict[tweet_id]['split'] == 'Dev':
+                dev_set.append(instance1)
+                dev_set.append(instance2)
+            elif label_dict[tweet_id]['split'] == 'Test':
+                test_set.append(instance1)
+                test_set.append(instance2)
+            else:
+                raise Exception(f'Unkown split: {label_dict[tweet_id]["split"]}')
+        return train_set, dev_set, test_set
+
+
 class PERSPECTRUMProcessor(PreProcessor):
     corpus_dir = 'PERSPECTRUM/'
     label_mapping = {
@@ -1022,6 +1099,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'IBMCS': IBMCSProcessor,
     'IMDB': IMDBProcessor,
     'MultiNLI': MultiNLIProcessor,
+    'MuliTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
     'SemEval2016Task6': SemEval2016Task6Processor,
