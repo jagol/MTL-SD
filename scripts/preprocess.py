@@ -464,6 +464,46 @@ class IACProcessor(PreProcessor):
         return train, dev, test
 
 
+class IMDBProcessor(PreProcessor):
+    corpus_dir = 'IMDB'
+    label_mapping = {
+        'pos': LabelsUnified.PRO,
+        'neg': LabelsUnified.CON,
+    }
+    file_names_out = {
+        'train': 'data/IMDB/train.jsonl',
+        'dev': 'data/IMDB/dev.jsonl',
+        'test': 'data/IMDB/test.jsonl',
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_pos = self._load(osjoin(self.corpus_path, 'train/pos/'))
+        train_neg = self._load(osjoin(self.corpus_path, 'train/neg/'))
+        test_pos = self._load(osjoin(self.corpus_path, 'test/pos/'))
+        test_neg = self._load(osjoin(self.corpus_path, 'test/neg/'))
+        train_set, dev_set = self._split_train_dev_set(train_pos + train_neg, dev_size)
+        test_set = test_pos + test_neg
+        random.shuffle(test_set)
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fdir: str) -> instances_type:
+        instances = []
+        for fname in os.listdir(fdir):
+            with open(osjoin(fdir, fname)) as fin:
+                instances.append({
+                    Fields.ID: self.instance_id,
+                    Fields.TEXT1: '',
+                    Fields.TEXT2: fin.read().strip(),
+                    Fields.LABEL_ORIGINAL: 'pos',
+                    Fields.LABEL_UNIFIED: self.label_mapping['pos'],
+                    Fields.TASK: 'IMDB'
+                })
+                self.instance_id += 1
+        return instances
+
+
 class MultiNLIProcessor(PreProcessor):
     corpus_dir = 'MultiNLI'
     label_mapping = {
@@ -980,6 +1020,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'FNC1': FNC1Processor,
     'IAC': IACProcessor,
     'IBMCS': IBMCSProcessor,
+    'IMDB': IMDBProcessor,
     'MultiNLI': MultiNLIProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
