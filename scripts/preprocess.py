@@ -1196,6 +1196,50 @@ class SSTProcessor(PreProcessor):
             return 'pro'
 
 
+class STSBProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/STS-B/train.tsv',
+        'dev': 'data/STS-B/dev.tsv',
+        'test': 'data/STS-B/test.tsv',
+    }
+    file_names_out = {
+        'train': 'data/STS-B/train.jsonl',
+        'dev': 'data/STS-B/dev.jsonl',
+        'test': 'data/STS-B/test.jsonl',
+    }
+    corpus_dir = 'STS-B/'
+    label_mapping = {
+        '0': LabelsUnified.CON,
+        '1': LabelsUnified.CON,
+        '2': LabelsUnified.OTHER,
+        '3': LabelsUnified.OTHER,
+        '4': LabelsUnified.PRO,
+        '5': LabelsUnified.PRO,
+    }
+
+    def process(self, dev_size: float) -> None:
+        self._process(self.file_names_in['train'], self.file_names_out['train'])
+        self._process(self.file_names_in['dev'], self.file_names_out['dev'])
+        # self._process(self.file_names_in['test'], self.file_names_out['test'])
+        # TODO: find test labels
+
+    def _process(self, fpath_in: str, fpath_out: str) -> None:
+        with open(fpath_in) as fin, open(fpath_out, 'w') as fout:
+            reader = csv.reader(fin, delimiter='\t')
+            next(reader)  # skip header
+            for line in fin:
+                idx, genre, fname, year, oldidx, src1, src2, sent1, sent2, score = line.split('\t')
+                label_orig = str(int(round(float(score))))
+                fout.write(json.dumps({
+                    Fields.ID: idx,
+                    Fields.TEXT1: sent1,
+                    Fields.TEXT2: sent2,
+                    Fields.LABEL_ORIGINAL: label_orig,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label_orig],
+                    Fields.TASK: 'STS-B'
+                }) + '\n')
+
+
 class TargetDepSAProcessor(PreProcessor):
     file_names_in = {
         'train': 'data/TargetDepSA/train.raw',
@@ -1274,6 +1318,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'SemEval2019Task7': SemEval2019Task7Processor,
     'Snopes': SnopesProcessor,
     'SST': SSTProcessor,
+    'STS-B': STSBProcessor,
     'TargetDepSA': TargetDepSAProcessor
 }
 
