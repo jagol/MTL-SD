@@ -32,6 +32,9 @@ instances_type = List[Dict[str, str]]
 tws_type = Dict[str, Tuple[str, str]]
 
 
+NO_TARGET_TOKEN = "None"
+
+
 class LabelsUnified:
     PRO = 'pro'
     CON = 'con'
@@ -494,7 +497,7 @@ class IMDBProcessor(PreProcessor):
             with open(osjoin(fdir, fname)) as fin:
                 instances.append({
                     Fields.ID: self.instance_id,
-                    Fields.TEXT1: '',
+                    Fields.TEXT1: NO_TARGET_TOKEN,
                     Fields.TEXT2: fin.read().strip(),
                     Fields.LABEL_ORIGINAL: 'pos',
                     Fields.LABEL_UNIFIED: self.label_mapping['pos'],
@@ -987,6 +990,166 @@ class SCDProcessor(PreProcessor):
         return post_id_to_files
 
 
+class SemEval2016Task4AProcessor(PreProcessor):
+    file_names_in = {
+        'train_labels': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                        'subtask-A.train.gold.txt',
+        'train_tweets': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                        'subtask-A.train.gold.txt.tweets',
+        'dev_labels': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                      'subtask-A.dev.gold.txt',
+        'dev_tweets': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                      'subtask-A.dev.gold.txt.tweets',
+        'test_labels': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                       'subtask-A.devtest.gold.txt',
+        'test_tweets': 'data/SemEval2016Task4A/100_topics_100_tweets.sentence-three-point.'
+                       'subtask-A.devtest.gold.txt.tweets'
+    }
+    file_names_out = {
+        'train': 'data/SemEval2016Task4A/train.jsonl',
+        'dev': 'data/SemEval2016Task4A/dev.jsonl',
+        'test': 'data/SemEval2016Task4A/test.jsonl',
+    }
+    corpus_dir = 'SemEval2016Task4A/'
+    label_mapping = {
+        'positive': LabelsUnified.PRO,
+        'negative': LabelsUnified.CON,
+        'neutral': LabelsUnified.OTHER
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_set = self._process(self.file_names_in['train_labels'],
+                                  self.file_names_in['train_tweets'])
+        dev_set = self._process(self.file_names_in['dev_labels'],
+                                self.file_names_in['dev_tweets'])
+        test_set = self._process(self.file_names_in['test_labels'],
+                                 self.file_names_in['test_tweets'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _process(self, path_annotations: str, path_tweets: str) -> instances_type:
+        annotation_reader = csv.reader(open(path_annotations), delimiter='\t')
+        tweet_reader = csv.reader(open(path_tweets))
+        tweets = {}
+        for row in tweet_reader:
+            tweets[row[0]] = {Fields.ID: row[0], Fields.TEXT2: row[1]}
+        for row in annotation_reader:
+            if row[0] in tweets:
+                tweets[row[0]][Fields.TEXT1] = NO_TARGET_TOKEN
+                tweets[row[0]][Fields.LABEL_ORIGINAL] = row[1].strip()
+                tweets[row[0]][Fields.LABEL_UNIFIED] = self.label_mapping[row[1].strip()]
+                tweets[row[0]][Fields.TASK] = 'SemEval2016Task4A'
+        return [tweet for tweet_id, tweet in tweets.items()]
+
+
+class SemEval2016Task4BProcessor(PreProcessor):
+    file_names_in = {
+        'train_labels': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                        'subtask-BD.train.gold.txt',
+        'train_tweets': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                        'subtask-BD.train.gold.txt.tweets',
+        'dev_labels': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                      'subtask-BD.dev.gold.txt',
+        'dev_tweets': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                      'subtask-BD.dev.gold.txt.tweets',
+        'test_labels': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                       'subtask-BD.devtest.gold.txt',
+        'test_tweets': 'data/SemEval2016Task4B/100_topics_XXX_tweets.topic-two-point.'
+                       'subtask-BD.devtest.gold.txt.tweets'
+    }
+    file_names_out = {
+        'train': 'data/SemEval2016Task4B/train.jsonl',
+        'dev': 'data/SemEval2016Task4B/dev.jsonl',
+        'test': 'data/SemEval2016Task4B/test.jsonl',
+    }
+    corpus_dir = 'SemEval2016Task4B/'
+    label_mapping = {
+        'positive': LabelsUnified.PRO,
+        'negative': LabelsUnified.CON,
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_set = self._process(self.file_names_in['train_labels'],
+                                  self.file_names_in['train_tweets'])
+        dev_set = self._process(self.file_names_in['dev_labels'],
+                                self.file_names_in['dev_tweets'])
+        test_set = self._process(self.file_names_in['test_labels'],
+                                 self.file_names_in['test_tweets'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _process(self, path_annotations: str, path_tweets: str) -> instances_type:
+        annotation_reader = csv.reader(open(path_annotations), delimiter='\t')
+        tweet_reader = csv.reader(open(path_tweets))
+        tweets = {}
+        for row in tweet_reader:
+            tweets[row[0]] = {Fields.ID: row[0], Fields.TEXT2: row[1]}
+        for row in annotation_reader:
+            if row[0] in tweets:
+                tweets[row[0]][Fields.TEXT1] = row[1].strip('@')
+                tweets[row[0]][Fields.LABEL_ORIGINAL] = row[2].strip()
+                tweets[row[0]][Fields.LABEL_UNIFIED] = self.label_mapping[row[2].strip()]
+                tweets[row[0]][Fields.TASK] = 'SemEval2016Task4B'
+        return [tweet for tweet_id, tweet in tweets.items()]
+
+
+class SemEval2016Task4CProcessor(PreProcessor):
+    file_names_in = {
+        'train_labels': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                        'subtask-CE.train.gold.txt',
+        'train_tweets': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                        'subtask-CE.train.gold.txt.tweets',
+        'dev_labels': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                      'subtask-CE.dev.gold.txt',
+        'dev_tweets': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                      'subtask-CE.dev.gold.txt.tweets',
+        'test_labels': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                       'subtask-CE.devtest.gold.txt',
+        'test_tweets': 'data/SemEval2016Task4C/100_topics_100_tweets.topic-five-point.'
+                       'subtask-CE.devtest.gold.txt.tweets'
+    }
+    file_names_out = {
+        'train': 'data/SemEval2016Task4C/train.jsonl',
+        'dev': 'data/SemEval2016Task4C/dev.jsonl',
+        'test': 'data/SemEval2016Task4C/test.jsonl',
+    }
+    corpus_dir = 'SemEval2016Task4C/'
+    label_mapping = {
+        '-2': LabelsUnified.CON,
+        '-1': LabelsUnified.CON,
+        '0': LabelsUnified.OTHER,
+        '1': LabelsUnified.PRO,
+        '2': LabelsUnified.PRO,
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_set = self._process(self.file_names_in['train_labels'],
+                                  self.file_names_in['train_tweets'])
+        dev_set = self._process(self.file_names_in['dev_labels'],
+                                self.file_names_in['dev_tweets'])
+        test_set = self._process(self.file_names_in['test_labels'],
+                                 self.file_names_in['test_tweets'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _process(self, path_annotations: str, path_tweets: str) -> instances_type:
+        annotation_reader = csv.reader(open(path_annotations), delimiter='\t')
+        tweet_reader = csv.reader(open(path_tweets))
+        tweets = {}
+        for row in tweet_reader:
+            tweets[row[0]] = {Fields.ID: row[0], Fields.TEXT2: row[1]}
+        for row in annotation_reader:
+            if row[0] in tweets:
+                tweets[row[0]][Fields.TEXT1] = row[1].strip('@')
+                tweets[row[0]][Fields.LABEL_ORIGINAL] = row[2].strip()
+                tweets[row[0]][Fields.LABEL_UNIFIED] = self.label_mapping[row[2].strip()]
+                tweets[row[0]][Fields.TASK] = 'SemEval2016Task4C'
+        return [tweet for tweet_id, tweet in tweets.items()]
+
+
 class SSTProcessor(PreProcessor):
     file_names_in = {
         'train': 'data/SST/train_raw.jsonl',
@@ -1017,7 +1180,7 @@ class SSTProcessor(PreProcessor):
                 # fine_label = self._get_fine_label(instance)
                 fout.write(json.dumps({
                     Fields.ID: i,
-                    Fields.TEXT1: '',
+                    Fields.TEXT1: NO_TARGET_TOKEN,
                     Fields.TEXT2: instance['sentence'],
                     Fields.LABEL_ORIGINAL: bin_label,
                     Fields.LABEL_UNIFIED: self.label_mapping[bin_label],
@@ -1104,6 +1267,9 @@ CORPUS_NAME_TO_PROCESSOR = {
     'MultiTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'SCD': SCDProcessor,
+    'SemEval2016Task4A': SemEval2016Task4AProcessor,
+    'SemEval2016Task4B': SemEval2016Task4BProcessor,
+    'SemEval2016Task4C': SemEval2016Task4CProcessor,
     'SemEval2016Task6': SemEval2016Task6Processor,
     'SemEval2019Task7': SemEval2019Task7Processor,
     'Snopes': SnopesProcessor,
