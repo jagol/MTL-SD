@@ -1282,16 +1282,16 @@ class SSTProcessor(PreProcessor):
 
 class STSBProcessor(PreProcessor):
     file_names_in = {
-        'train': 'data/STS-B/train.tsv',
-        'dev': 'data/STS-B/dev.tsv',
-        'test': 'data/STS-B/test.tsv',
+        'train': 'data/STSB/train.tsv',
+        'dev': 'data/STSB/dev.tsv',
+        'test': 'data/STSB/test.tsv',
     }
     file_names_out = {
-        'train': 'data/STS-B/train.jsonl',
-        'dev': 'data/STS-B/dev.jsonl',
-        'test': 'data/STS-B/test.jsonl',
+        'train': 'data/STSB/train.jsonl',
+        'dev': 'data/STSB/dev.jsonl',
+        'test': 'data/STSB/test.jsonl',
     }
-    corpus_dir = 'STS-B/'
+    corpus_dir = 'STSB/'
     label_mapping = {
         '0': LabelsUnified.CON,
         '1': LabelsUnified.CON,
@@ -1302,26 +1302,29 @@ class STSBProcessor(PreProcessor):
     }
 
     def process(self, dev_size: float) -> None:
-        self._process(self.file_names_in['train'], self.file_names_out['train'])
-        self._process(self.file_names_in['dev'], self.file_names_out['dev'])
-        # self._process(self.file_names_in['test'], self.file_names_out['test'])
-        # TODO: find test labels
+        train_test_set = self._load(self.file_names_in['train'])
+        train_set, test_set = self._split_train_dev_set(train_test_set, dev_size)
+        dev_set = self._load(self.file_names_in['dev'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
 
-    def _process(self, fpath_in: str, fpath_out: str) -> None:
-        with open(fpath_in) as fin, open(fpath_out, 'w') as fout:
-            reader = csv.reader(fin, delimiter='\t')
-            next(reader)  # skip header
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            next(fin)
             for line in fin:
                 idx, genre, fname, year, oldidx, src1, src2, sent1, sent2, score = line.split('\t')
                 label_orig = str(int(round(float(score))))
-                fout.write(json.dumps({
+                instances.append({
                     Fields.ID: idx,
                     Fields.TEXT1: sent1,
                     Fields.TEXT2: sent2,
                     Fields.LABEL_ORIGINAL: label_orig,
                     Fields.LABEL_UNIFIED: self.label_mapping[label_orig],
-                    Fields.TASK: 'STS-B'
-                }) + '\n')
+                    Fields.TASK: 'STSB'
+                })
+        return instances
 
 
 class TargetDepSAProcessor(PreProcessor):
@@ -1446,7 +1449,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'SemEval2019Task7': SemEval2019Task7Processor,
     'Snopes': SnopesProcessor,
     'SST': SSTProcessor,
-    'STS-B': STSBProcessor,
+    'STSB': STSBProcessor,
     'TargetDepSA': TargetDepSAProcessor,
     'WNLI': WNLIProcessor
 }
