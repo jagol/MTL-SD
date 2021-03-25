@@ -720,6 +720,48 @@ class QQPProcessor(PreProcessor):
         return instances
 
 
+class RTEProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/RTE/train.tsv',
+        'dev': 'data/RTE/dev.tsv',
+        'test': 'data/RTE/test.tsv',
+    }
+    file_names_out = {
+        'train': 'data/RTE/train.jsonl',
+        'dev': 'data/RTE/dev.jsonl',
+        'test': 'data/RTE/test.jsonl',
+    }
+    corpus_dir = 'RTE/'
+    label_mapping = {
+        'entailment': LabelsUnified.PRO,
+        'not_entailment': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_test_set = self._load(self.file_names_in['train'])
+        train_set, test_set = self._split_train_dev_set(train_test_set, dev_size)
+        dev_set = self._load(self.file_names_in['dev'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            next(fin)
+            for line in fin:
+                index, sentence1, sentence2, label = line.strip('\n').split('\t')
+                instances.append({
+                    Fields.ID: index,
+                    Fields.TEXT1: sentence1,
+                    Fields.TEXT2: sentence2,
+                    Fields.LABEL_ORIGINAL: label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label],
+                    Fields.TASK: 'RTE'
+                })
+        return instances
+
+
 class SemEval2019Task7Processor(PreProcessor):
     """Code of this class is partly inspired/taken over from:
     https://github.com/UKPLab/mdl-stance-robustness/blob/
@@ -1332,6 +1374,48 @@ class TargetDepSAProcessor(PreProcessor):
         return instances
 
 
+class WNLIProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/WNLI/train.tsv',
+        'dev': 'data/WNLI/dev.tsv',
+        'test': 'data/WNLI/test.tsv',
+    }
+    file_names_out = {
+        'train': 'data/WNLI/train.jsonl',
+        'dev': 'data/WNLI/dev.jsonl',
+        'test': 'data/WNLI/test.jsonl',
+    }
+    corpus_dir = 'WNLI/'
+    label_mapping = {
+        '1': LabelsUnified.PRO,
+        '0': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_test_set = self._load(self.file_names_in['train'])
+        train_set, test_set = self._split_train_dev_set(train_test_set, dev_size)
+        dev_set = self._load(self.file_names_in['dev'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            next(fin)
+            for line in fin:
+                index, sentence1, sentence2, label = line.strip('\n').split('\t')
+                instances.append({
+                    Fields.ID: index,
+                    Fields.TEXT1: sentence1,
+                    Fields.TEXT2: sentence2,
+                    Fields.LABEL_ORIGINAL: label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label],
+                    Fields.TASK: 'WNLI'
+                })
+        return instances
+
+
 def main(args: argparse.Namespace):
     print(f'Start processing {args.corpus}.')
     print(f'  data-dir: {args.data_dir}')
@@ -1353,6 +1437,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'MultiTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
     'QQP': QQPProcessor,
+    'RTE': RTEProcessor,
     'SCD': SCDProcessor,
     'SemEval2016Task4A': SemEval2016Task4AProcessor,
     'SemEval2016Task4B': SemEval2016Task4BProcessor,
@@ -1362,7 +1447,8 @@ CORPUS_NAME_TO_PROCESSOR = {
     'Snopes': SnopesProcessor,
     'SST': SSTProcessor,
     'STS-B': STSBProcessor,
-    'TargetDepSA': TargetDepSAProcessor
+    'TargetDepSA': TargetDepSAProcessor,
+    'WNLI': WNLIProcessor
 }
 
 
