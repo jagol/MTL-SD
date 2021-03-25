@@ -302,6 +302,49 @@ class ArgMinProcessor(PreProcessor):
                     raise Exception(f'Error. Set {fields[6]} unknown.')
 
 
+class CoLAProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/CoLA/train.tsv',
+        'dev': 'data/CoLA/dev.tsv',
+        'test': 'data/CoLA/test.tsv',
+    }
+    file_names_out = {
+        'train': 'data/CoLA/train.jsonl',
+        'dev': 'data/CoLA/dev.jsonl',
+        'test': 'data/CoLA/test.jsonl',
+    }
+    corpus_dir = 'CoLA/'
+    label_mapping = {
+        '1': LabelsUnified.PRO,
+        '0': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_test_set = self._load(self.file_names_in['train'])
+        train_set, test_set = self._split_train_dev_set(train_test_set, dev_size)
+        dev_set = self._load(self.file_names_in['dev'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            next(fin)
+            for line in fin:
+                source, label, anno, sent = line.strip('\n').split('\t')
+                instances.append({
+                    Fields.ID: self.instance_id,
+                    Fields.TEXT1: NO_TARGET_TOKEN,
+                    Fields.TEXT2: sent,
+                    Fields.LABEL_ORIGINAL: label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label],
+                    Fields.TASK: 'CoLA'
+                })
+                self.instance_id += 1
+        return instances
+
+
 class FNC1Processor(PreProcessor):
     corpus_dir = 'FNC1/'
     label_mapping = {
@@ -504,6 +547,47 @@ class IMDBProcessor(PreProcessor):
                     Fields.TASK: 'IMDB'
                 })
                 self.instance_id += 1
+        return instances
+
+
+class MSRParaProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/MSRPara/msr_paraphrase_train.txt',
+        'test': 'data/MSRPara/msr_paraphrase_test.txt',
+    }
+    file_names_out = {
+        'train': 'data/MSRPara/train.jsonl',
+        'dev': 'data/MSRPara/dev.jsonl',
+        'test': 'data/MSRPara/test.jsonl',
+    }
+    corpus_dir = 'MSRPara/'
+    label_mapping = {
+        '1': LabelsUnified.PRO,
+        '0': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_dev_set = self._load(self.file_names_in['train'])
+        train_set, dev_set = self._split_train_dev_set(train_dev_set, dev_size)
+        test_set = self._load(self.file_names_in['test'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            next(fin)
+            for line in fin:
+                label, idx1, idx2, sent1, sent2 = line.strip('\n').split('\t')
+                instances.append({
+                    Fields.ID: f'{idx1}_{idx2}',
+                    Fields.TEXT1: sent1,
+                    Fields.TEXT2: sent2,
+                    Fields.LABEL_ORIGINAL: label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label],
+                    Fields.TASK: 'MSRPara'
+                })
         return instances
 
 
@@ -1432,10 +1516,12 @@ def main(args: argparse.Namespace):
 CORPUS_NAME_TO_PROCESSOR = {
     'arc': ArcProcessor,
     'ArgMin': ArgMinProcessor,
+    'CoLA': CoLAProcessor,
     'FNC1': FNC1Processor,
     'IAC': IACProcessor,
     'IBMCS': IBMCSProcessor,
     'IMDB': IMDBProcessor,
+    'MSRPara': MSRParaProcessor,
     'MultiNLI': MultiNLIProcessor,
     'MultiTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
