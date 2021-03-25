@@ -678,6 +678,48 @@ class PERSPECTRUMProcessor(PreProcessor):
         return train_set, dev_set, test_set
 
 
+class QQPProcessor(PreProcessor):
+    file_names_in = {
+        'train': 'data/QQP/train.tsv',
+        'dev': 'data/QQP/dev.tsv',
+        'test': 'data/QQP/test.tsv',
+    }
+    file_names_out = {
+        'train': 'data/QQP/train.jsonl',
+        'dev': 'data/QQP/dev.jsonl',
+        'test': 'data/QQP/test.jsonl',
+    }
+    corpus_dir = 'QQP/'
+    label_mapping = {
+        '0': LabelsUnified.PRO,
+        '1': LabelsUnified.CON
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_test_set = self._load(self.file_names_in['train'])
+        train_set, test_set = self._split_train_dev_set(train_test_set, dev_size)
+        dev_set = self._load(self.file_names_in['dev'])
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_in: str) -> instances_type:
+        instances = []
+        with open(fpath_in) as fin:
+            reader = csv.reader(fin, delimiter='\t')
+            next(reader)  # skip header
+            for id_, qid1, qid2, question1, question2, is_duplicate in reader:
+                instances.append({
+                    Fields.ID: id_,
+                    Fields.TEXT1: question1,
+                    Fields.TEXT2: question2,
+                    Fields.LABEL_ORIGINAL: is_duplicate,
+                    Fields.LABEL_UNIFIED: self.label_mapping[is_duplicate],
+                    Fields.TASK: 'QQP'
+                })
+        return instances
+
+
 class SemEval2019Task7Processor(PreProcessor):
     """Code of this class is partly inspired/taken over from:
     https://github.com/UKPLab/mdl-stance-robustness/blob/
@@ -1310,6 +1352,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'MultiNLI': MultiNLIProcessor,
     'MultiTargetSD': MultiTargetSDProcessor,
     'PERSPECTRUM': PERSPECTRUMProcessor,
+    'QQP': QQPProcessor,
     'SCD': SCDProcessor,
     'SemEval2016Task4A': SemEval2016Task4AProcessor,
     'SemEval2016Task4B': SemEval2016Task4BProcessor,
