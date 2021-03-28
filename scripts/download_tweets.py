@@ -26,7 +26,7 @@ def get_keys(path: str) -> Dict[str, str]:
 def main(cmd_args: argparse.Namespace):
     api = Api(**get_keys(cmd_args.keys))
     with open(cmd_args.inpath) as fin, open(cmd_args.outpath, 'w') as fout:
-        reader = csv.reader(fin)
+        reader = csv.reader(fin, delimiter='\t')  # find better sol for delimiter
         writer = csv.writer(fout)
         for i, row in enumerate(reader):
             tweet_id = row[cmd_args.column]
@@ -51,5 +51,7 @@ if __name__ == '__main__':
                                                 'id KOMMA tweet')
     parser.add_argument('-i', '--inpath', help='Path to csv-file containing ids')
     parser.add_argument('-c', '--column', type=int, help='Column index of the input ids.')
+    parser.add_argument('-s', '--separator', default=',',
+                        help='Separator/Delimiter of input file.')
     args = parser.parse_args()
     main(args)
