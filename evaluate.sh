@@ -41,8 +41,6 @@ for dataset in ${tasks[@]}; do
   echo "Path to output file set to: $path_output_file"
   echo "Predicting..."
   allennlp predict $model_path $data_path --include-package mtl_sd --predictor multitask --cuda-device $3 --output-file $path_output_file --silent --predictor multitask_stance
-  echo "Predicting finished. Extracting results."
-  python3 scripts/extract_results.py --path $path_output_file
 done
 
 echo "Compute metrics for predictions..."

@@ -15,10 +15,10 @@ def load_predictions(fpath: str, fname: str = None) -> List[int]:
         fpath = os.path.join(fpath, fname)
     predictions = []
     with open(fpath) as fin:
-        reader = csv.reader(fin)
-        for row in reader:
-            class_probs = [float(num) for num in row]
-            class_id = int(np.argmax(class_probs))
+        for line in fin:
+            d = json.loads(line)
+            key = [k for k in d.keys() if k.endswith('probs')][0]
+            class_id = int(np.argmax(d[key]))
             predictions.append(class_id)
     return predictions
 
