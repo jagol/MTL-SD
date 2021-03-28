@@ -163,10 +163,8 @@ def write_confms_to_file(conf_matrices: Dict[str, List[List[int]]],
 def main(cmd_args):
     predictions = {}
     if os.path.isdir(cmd_args.predictions):
-        ending = '_extracted.csv'
-        fns_extr = [fn for fn in os.listdir(cmd_args.predictions) if fn.endswith(ending)]
-        for fname in fns_extr:
-            corpus = '_'.join(fname.split('_')[:-1])
+        for fname in os.listdir(cmd_args.predictions):
+            corpus = fname.split('.')[0]
             predictions[corpus] = load_predictions(cmd_args.predictions, fname=fname)
     elif os.path.isfile(cmd_args.predictions):
         corpus = '_'.join(cmd_args.path.split('_')[:-1])
@@ -186,8 +184,7 @@ def main(cmd_args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--predictions', type=str, required=True,
-                        help='Path to extracted predictions. Either a csv-file or a directory '
-                             'containing csv-files produced by extract_results.py.')
+                        help='Path to predictions. Jsonl-file')
     parser.add_argument('--labels', type=str, required=True,
                         help='Name of test-files in jsonl format.')
     parser.add_argument('--evaluation', type=str, required=True,

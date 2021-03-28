@@ -21,26 +21,28 @@ fi
 
 if [[ "$5" == "local" ]]
 then
-  data_dir="data"
-  results_dir="results"
+  data_dir="./data"
+  results_dir="./results"
 elif [[ "$5" == "rattle" ]]
 then
   data_dir="/srv/scratch0/jgoldz/mthesis/data"
   results_dir="/srv/scratch0/jgoldz/mthesis/results"
 else
   echo "Unknown location: ${5}"
+  exit 1
 fi
 
-allennlp train $path_config --include-package mtl_sd -s $results_dir -o "{'trainer.cuda_device': $3}"
+echo "Start training..."
+# allennlp train $path_config --include-package mtl_sd -s "${results_dir}/$1" -o "{'trainer.cuda_device': $3}"
 echo "Training finished."
 
 echo "Setup evaluation."
-model_path=$results_dir+"/${1}/model.tar.gz"
-mkdir $results_dir+"/${1}/predictions/"
+model_path="${results_dir}/${1}/model.tar.gz"
+mkdir "${results_dir}/${1}/predictions/"
 
 for dataset in ${tasks[@]}; do
   data_path="${data_dir}/${dataset}/${2}"
-  path_output_file=$results_dir+"/${1}/predictions/${dataset}.jsonl"
+  path_output_file="${results_dir}/${1}/predictions/${dataset}.jsonl"
   echo "Now processing dataset: $dataset"
   echo "Data path set to: $data_path"
   echo "Path to output file set to: $path_output_file"
@@ -49,6 +51,6 @@ for dataset in ${tasks[@]}; do
 done
 
 echo "Compute metrics for predictions..."
-python3 scripts/evaluate.py --predictions $results_dir+"/${1}/predictions/" --labels $2 --evaluation $results_dir+"/${1}/evaluation.json" --vocab $results_dir+"/${1}/vocabulary" --label_type $4 --data_dir $data_dir
+python3 scripts/evaluate.py --predictions "${results_dir}/${1}/predictions/" --labels $2 --evaluation "${results_dir}/${1}/evaluation.json" --vocab "${results_dir}/${1}/vocabulary" --label_type $4 --data_dir $data_dir
 echo "Main metrics as csv:"
 python3 scripts/evaluation_to_csv.py -c $1 -d $data_dir
