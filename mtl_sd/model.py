@@ -1,11 +1,16 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any, Mapping, Set, Tuple
+from collections import defaultdict
 
+from allennlp.models.multitask import get_forward_arguments, MultiTaskModel
+from allennlp.nn import InitializerApplicator
+from overrides import overrides
 import torch
 from allennlp.data import Vocabulary
 from allennlp.models.heads import Head
 from allennlp.modules.backbones import Backbone
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.training.metrics import CategoricalAccuracy, FBetaMeasure
+from allennlp.models.model import Model
 
 
 @Backbone.register('sdmtl_backbone')
@@ -130,17 +135,18 @@ class StanceHeadTwoLayers(Head):
         }
 
 
-@Head.register('stance_head_sigmoid')
-class StanceHeadSigmoid(Head):
+@Head.register('stance_head_mse')
+class StanceHeadMSE(Head):
 
     default_predictor = 'head_predictor'
 
-    def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, dropout: float = 0.0,
-                 class_weights: List[float] = None):
+    def __init__(self, vocab: Vocabulary, input_dim: int,
+                 label_to_range: Dict[str, Tuple[float, float]], dropout: float = 0.0) -> None:
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
-        self.output_dim = output_dim
         self.dropout = dropout
+        self.label_to_range = label_to_range
+        self.label_to_index = self.get_label_to_index()
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
             torch.nn.Linear(self.input_dim, 1),
@@ -149,19 +155,31 @@ class StanceHeadSigmoid(Head):
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
         }
-        if class_weights:
-            raise Exception('Class weights with BCEloss are not possible.')
-            # self.class_weights = torch.FloatTensor(class_weights)
-            # self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
-        else:
-            self.BCE_sigm_loss = torch.nn.BCEWithLogitsLoss()
-        # self.label_regions = {}  # {upper_end: label}
-        # self.range_per_label = 1 / self.output_dim
-        # for i in range(self.output_dim):
-        #     self.label_regions[self.range_per_label*(i+1)] = i
+        self.mse_loss = torch.nn.MSELoss()
 
-    # def float_to_label(self, float_num: torch.FloatTensor) -> torch.LongTensor:
-    #     pass
+    def sort_labels(self) -> Dict[str, int]:
+        sorted_labels = sorted(self.label_to_range, key=lambda key: self.label_to_range[key])
+        return {label: index for index, label in enumerate(sorted_labels)}
+
+    def _get_pred_labels(self, logits: torch.Tensor) -> List[List[int]]:
+        """
+        Args:
+            logits: tensor of shape (batch-size, output-dims)
+        """
+        pred_labels = []
+        logits_list = logits.tolist()
+        if isinstance(logits_list, float):
+            logits_list = [logits]
+        for num in logits_list:
+            pred_label = None
+            for label in self.label_to_range:
+                if self.label_to_range[label][0] <= num < self.label_to_range[label][1]:
+                    if pred_label is None:
+                        pred_label = label
+            ohe_pred_label = len(self.label_to_range) * [0]
+            label_index = self.label_to_index[pred_label]
+            ohe_pred_label[label_index] = 1
+        return pred_labels
 
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
@@ -170,18 +188,15 @@ class StanceHeadSigmoid(Head):
         # Shape: (batch_size, num_labels)
         logits = torch.squeeze(self.layers(cls_tokens))
 
-        output = {}
+        output = {'logits': logits}
+        # get predicted labels
+        pred_labels: List[List[int]] = self._get_pred_labels(logits)
+        output['probs'] = pred_labels
         if label is not None:
-            pred_labels = []
-            for num in logits:
-                if num > 0.5:
-                    pred_labels.append([1, 0])
-                else:
-                    pred_labels.append([0, 1])
-            pred_labels = torch.LongTensor(pred_labels)
-            self.metrics['accuracy'](pred_labels, label)
-            self.metrics['f1_macro'](pred_labels, label)
-            output['loss'] = self.BCE_sigm_loss(logits, label.float())
+            pred_labels_tensor = torch.LongTensor(pred_labels)
+            self.metrics['accuracy'](pred_labels_tensor, label)
+            self.metrics['f1_macro'](pred_labels_tensor, label)
+            output['loss'] = self.mse_loss(logits, label.float())
         return output
 
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
