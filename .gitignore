@@ -1,11 +1,14 @@
 __pycache__
 .idea
 allennlp_tutorials/*
-data/*/*/*
+data/*
 mtl_sd_venv
 results
 *.n
+*.txt
 run.py
 mtl_sd/train.py
 temp_bash/*
 data_distrs/*
+corpus_stats/*
+configs/*
