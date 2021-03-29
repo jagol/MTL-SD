@@ -1,16 +1,11 @@
-from typing import Dict, List, Union, Any, Mapping, Set, Tuple
-from collections import defaultdict
+from typing import Dict, List, Union, Tuple
 
-from allennlp.models.multitask import get_forward_arguments, MultiTaskModel
-from allennlp.nn import InitializerApplicator
-from overrides import overrides
 import torch
 from allennlp.data import Vocabulary
 from allennlp.models.heads import Head
 from allennlp.modules.backbones import Backbone
 from allennlp.modules.text_field_embedders import BasicTextFieldEmbedder
 from allennlp.training.metrics import CategoricalAccuracy, FBetaMeasure
-from allennlp.models.model import Model
 
 
 @Backbone.register('sdmtl_backbone')
@@ -129,11 +124,6 @@ class StanceHeadMSE(StanceHead):
         self.dropout = dropout
         self.label_to_range = label_to_range
         self.label_to_index = self._get_label_to_index()
-        self.layers = torch.nn.Sequential(
-            torch.nn.Dropout(dropout),
-            torch.nn.Linear(self.input_dim, 1),
-            torch.nn.Sigmoid()
-        )
         self.metrics = {
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
@@ -180,3 +170,33 @@ class StanceHeadMSE(StanceHead):
             self.metrics['f1_macro'](pred_labels_tensor, label)
             output['loss'] = self.mse_loss(logits, label.float())
         return output
+
+
+@Head.register('stance_head_mse_1l')
+class StanceHeadMSE1L(StanceHeadMSE):
+
+    def __init__(self, vocab: Vocabulary, input_dim: int,
+                 label_to_range: Dict[str, Tuple[float, float]], dropout: float = 0.0) -> None:
+        super().__init__(vocab=vocab, input_dim=input_dim, label_to_range=label_to_range,
+                         dropout=dropout)
+        self.layers = torch.nn.Sequential(
+            torch.nn.Dropout(dropout),
+            torch.nn.Linear(self.input_dim, 1),
+            torch.nn.Sigmoid()
+        )
+
+
+@Head.register('stance_head_mse_2l')
+class StanceHeadMSE2L(StanceHeadMSE):
+
+    def __init__(self, vocab: Vocabulary, input_dim: int,
+                 label_to_range: Dict[str, Tuple[float, float]], dropout: float = 0.0) -> None:
+        super().__init__(vocab=vocab, input_dim=input_dim, label_to_range=label_to_range,
+                         dropout=dropout)
+        self.layers = torch.nn.Sequential(
+            torch.nn.Dropout(dropout),
+            torch.nn.Linear(self.input_dim, self.input_dim),
+            torch.nn.ReLU(inplace=True),
+            torch.nn.Linear(self.input_dim, 1),
+            torch.nn.Sigmoid()
+        )
