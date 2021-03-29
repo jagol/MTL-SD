@@ -27,6 +27,9 @@ def main(cmd_args: argparse.Namespace) -> None:
             line_count = get_line_count(train_path)
             warmup_steps = int(cmd_args.ratio + line_count)
             print(f'{cmd_args.corpus}: [{line_count}] / [{warmup_steps}]')
+            if cmd_args.output:
+                with open(cmd_args.output, 'w') as f:
+                    f.write(str(warmup_steps))
     elif cmd_args.sum:
         line_counts = {}
         for dir_name in os.listdir(cmd_args.data):
@@ -47,5 +50,7 @@ if __name__ == '__main__':
                         help='Compute only warmup steps for the given corpus.')
     parser.add_argument('-s', '--sum', nargs='+', default=None,
                         help='Compute summed warmup steps for all given corpora.')
+    parser.add_argument('-o', '--output',
+                        help='Path to output file. Only used in combination with -c.')
     args = parser.parse_args()
     main(cmd_args=args)

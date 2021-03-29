@@ -26,14 +26,16 @@ then
 elif [[ "$5" == "rattle" ]]
 then
   data_dir="/srv/scratch0/jgoldz/mthesis/data"
-  results_dir="/srv/scratch0/jgoldz/mthesis/results"
+  results_dir="results"
 else
   echo "Unknown location: ${5}"
   exit 1
 fi
 
+echo "Compute warmup steps in case they are needed..."
+python3 scripts/compute_warmup_steps.py -c $path_config -d $data_dir -o "warmup_steps.txt"
 echo "Start training..."
-# allennlp train $path_config --include-package mtl_sd -s "${results_dir}/$1" -o "{'trainer.cuda_device': $3}"
+allennlp train $path_config --include-package mtl_sd -o "{'trainer.cuda_device': $3}" -s "${results_dir}/$1"
 echo "Training finished."
 
 echo "Setup evaluation."
