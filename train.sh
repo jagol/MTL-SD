@@ -8,7 +8,7 @@ then
   results_dir="results"
 elif [[ "$3" == "rattle" ]]
 then
-  results_dir="/srv/scratch0/jgoldz/mthesis/results"
+  results_dir="results"
 else
   echo "Unknown location: ${5}"
 fipath_config="configs/${1}.jsonnet"
