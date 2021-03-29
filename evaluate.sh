@@ -25,7 +25,7 @@ then
 elif [[ "$5" == "rattle" ]]
 then
   data_dir="/srv/scratch0/jgoldz/mthesis/data"
-  results_dir="/srv/scratch0/jgoldz/mthesis/results"
+  results_dir="results"
 else
   echo "Unknown location: ${5}"
 fi
