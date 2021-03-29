@@ -10,35 +10,42 @@ def get_line_count(fpath: str) -> int:
     return line_count
 
 
+def calc_warmup_steps(num_instances: int, num_epochs: int, batch_size: int,
+                      warmup_ratio: float) -> int:
+    return ()
+
+
 def main(cmd_args: argparse.Namespace) -> None:
     if not cmd_args.corpus and not cmd_args.sum:
-        line_counts = {}
+        total_steps = {}
         for dir_name in os.listdir(cmd_args.data):
             train_path = os.path.join(cmd_args.data, dir_name, 'train.jsonl')
             if os.path.exists(train_path):
-                line_counts[dir_name] = get_line_count(train_path)
-        warmup_steps = {dir_name: int(cmd_args.ratio*line_count) for dir_name, line_count in
-                        line_counts.items()}
-        for dir_name in sorted(line_counts):
-            print(f'{dir_name}: [{line_counts[dir_name]}] / [{warmup_steps[dir_name]}]')
+                num_inst = get_line_count(train_path)
+                total_steps[dir_name] = int(cmd_args.num_epochs * num_inst / cmd_args.batch_size)
+        warmup_steps = {dir_name: int(cmd_args.ratio * steps) for dir_name, steps in total_steps.items()}
+        for dir_name in sorted(total_steps):
+            print(f'{dir_name}: [{total_steps[dir_name]}] / [{warmup_steps[dir_name]}]')
     elif cmd_args.corpus:
         train_path = os.path.join(cmd_args.data, cmd_args.corpus, 'train.jsonl')
         if os.path.exists(train_path):
-            line_count = get_line_count(train_path)
-            warmup_steps = int(cmd_args.ratio + line_count)
-            print(f'{cmd_args.corpus}: [{line_count}] / [{warmup_steps}]')
+            num_instances = get_line_count(train_path)
+            total_steps = int(cmd_args.num_epochs * num_instances / cmd_args.batch_size)
+            warmup_steps = int(cmd_args.ratio * total_steps)
+            print(f'{cmd_args.corpus}: [{total_steps}] / [{warmup_steps}]')
             if cmd_args.output:
                 with open(cmd_args.output, 'w') as f:
                     f.write(str(warmup_steps))
     elif cmd_args.sum:
-        line_counts = {}
+        total_steps = {}
         for dir_name in os.listdir(cmd_args.data):
             train_path = os.path.join(cmd_args.data, dir_name, 'train.jsonl')
             if os.path.exists(train_path):
-                line_counts[dir_name] = get_line_count(train_path)
-        warmup_steps = {dir_name: int(cmd_args.ratio * line_count) for dir_name, line_count in
-                        line_counts.items()}
-        print(f'Sum: [{sum(line_counts.values())}] / [{sum(warmup_steps.values())}]')
+                num_inst = get_line_count(train_path)
+                total_steps[dir_name] = int(cmd_args.num_epochs * num_inst / cmd_args.batch_size)
+        sum_total_steps = sum(total_steps.values())
+        sum_warmup_steps = int(cmd_args.ratio * sum_total_steps)
+        print(f'Sum: [{sum_total_steps}] / [{sum_warmup_steps}]')
 
 
 if __name__ == '__main__':
@@ -52,5 +59,7 @@ if __name__ == '__main__':
                         help='Compute summed warmup steps for all given corpora.')
     parser.add_argument('-o', '--output',
                         help='Path to output file. Only used in combination with -c.')
+    parser.add_argument('-e', '--num_epochs', type=int, default=5)
+    parser.add_argument('-b', '--batch_size', type=int, default=16)
     args = parser.parse_args()
     main(cmd_args=args)

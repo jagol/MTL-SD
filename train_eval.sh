@@ -33,7 +33,7 @@ else
 fi
 
 echo "Compute warmup steps in case they are needed..."
-python3 scripts/compute_warmup_steps.py -c $path_config -d $data_dir -o "warmup_steps.txt"
+python3 scripts/compute_warmup_steps.py -c $6 -d $data_dir -o "configs/warmup_steps.txt" -r 0.1 -b 16  -e 5 # beware: hard coded batchsize!
 echo "Start training..."
 allennlp train $path_config --include-package mtl_sd -o "{'trainer.cuda_device': $3}" -s "${results_dir}/$1"
 echo "Training finished."
