@@ -10,11 +10,6 @@ def get_line_count(fpath: str) -> int:
     return line_count
 
 
-def calc_warmup_steps(num_instances: int, num_epochs: int, batch_size: int,
-                      warmup_ratio: float) -> int:
-    return ()
-
-
 def main(cmd_args: argparse.Namespace) -> None:
     if not cmd_args.corpus and not cmd_args.sum:
         total_steps = {}
