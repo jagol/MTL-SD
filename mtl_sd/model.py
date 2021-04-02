@@ -11,17 +11,18 @@ from allennlp.training.metrics import CategoricalAccuracy, FBetaMeasure
 @Backbone.register('sdmtl_backbone')
 class SDMTLBackBone(Backbone):
 
-    def __init__(self, encoder: BasicTextFieldEmbedder):
+    def __init__(self, encoder: BasicTextFieldEmbedder, encoder_name: str = 'bert'):
         super().__init__()
         self.encoder = encoder
+        self.encoder_name = encoder_name
 
     def forward(self, text_field: Dict[str, Dict[str, torch.Tensor]], label: torch.Tensor = None,
                 encoder_name='bert') -> Dict[str, torch.Tensor]:
         return {
             'token_ids_encoded': self.encoder(text_field),
-            'token_ids': text_field[encoder_name]['token_ids'],
-            'mask': text_field[encoder_name]['mask'],
-            'type_ids': text_field[encoder_name]['type_ids']
+            'token_ids': text_field[self.encoder_name]['token_ids'],
+            'mask': text_field[self.encoder_name]['mask'],
+            'type_ids': text_field[self.encoder_name]['type_ids']
         }
 
 
