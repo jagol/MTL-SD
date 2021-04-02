@@ -4,19 +4,22 @@
 # $3: cuda-device
 # $4: label-type, "label_orig" or "label_uni" (check that it's same as specified in StanceDetectionReader)
 # $5: local or rattle
-# $6: "all" or list of corpora to test, if no corpus arg is given predicting is skipped.
+# $6: warmup ratio
+# $7: batch-size
+# $8: num epochs
+# $9: "all" or list of corpora to test, if no corpus arg is given predicting is skipped.
 set -e
 
 path_config="configs/${1}.jsonnet"
 
-if [[ "$6" == "all" ]]
+if [[ "$9" == "all" ]]
 then
   tasks=("arc" "ArgMin" "FNC1" "IAC" "IBMCS" "PERSPECTRUM" "SCD" "SemEval2016Task6" "SemEval2019Task7" "Snopes")
-elif [[ "$6" == "" ]]
+elif [[ "$9" == "" ]]
 then
   tasks=()
 else
-  tasks=${@:6};
+  tasks=${@:9};
 fi
 
 if [[ "$5" == "local" ]]
@@ -33,7 +36,7 @@ else
 fi
 
 echo "Compute warmup steps in case they are needed..."
-python3 scripts/compute_warmup_steps.py -c $6 -d $data_dir -o "configs/warmup_steps.txt" -r 0.1 -b 16  -e 5 # beware: hard coded batchsize!
+python3 scripts/compute_warmup_steps.py -c $9 -d $data_dir -o "configs/warmup_steps.txt" -r $6 -b $7 -e $8
 echo "Start training..."
 allennlp train $path_config --include-package mtl_sd -o "{'trainer.cuda_device': $3}" -s "${results_dir}/$1"
 echo "Training finished."
