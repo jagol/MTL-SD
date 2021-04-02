@@ -44,12 +44,13 @@ class StanceHead(Head):
 class StanceHeadCrossEnt(StanceHead):
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, label_namespace: str,
-                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None
-                 ) -> None:
+                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None,
+                 use_sep_repr: bool = False) -> None:
         super().__init__(vocab=vocab)
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.dropout = dropout
+        self.use_sep_repr = use_sep_repr
         self.metrics = {
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
@@ -67,9 +68,12 @@ class StanceHeadCrossEnt(StanceHead):
     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
                 ) -> Dict[str, torch.Tensor]:
         # Shape: (batch_size, num_tokens, embedding_dim)
-        cls_tokens = token_ids_encoded[:, 0, :]
+        cls_repr = token_ids_encoded[:, 0, :]
+        if self.use_sep_repr:
+            last_sep_tokens = token_ids_encoded[:, -1, :]
+            cls_repr = torch.cat([cls_repr, last_sep_tokens], dim=1)
         # Shape: (batch_size, num_labels)
-        logits = self.layers(cls_tokens)
+        logits = self.layers(cls_repr)
         # Shape: (batch_size, num_labels)
         probs = torch.nn.functional.softmax(logits, dim=1)
         output = {'probs': probs}
@@ -84,11 +88,13 @@ class StanceHeadCrossEnt(StanceHead):
 class StanceHeadCrossEnt1L(StanceHeadCrossEnt):
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, label_namespace: str,
-                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None
-                 ) -> None:
+                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None,
+                 use_sep_repr: bool = False) -> None:
         super().__init__(vocab=vocab, input_dim=input_dim, output_dim=output_dim,
                          label_namespace=label_namespace, dropout=dropout,
-                         class_weights=class_weights)
+                         class_weights=class_weights, use_sep_repr=use_sep_repr)
+        if use_sep_repr:
+            self.input_dim = 2 * self.input_dim
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
             torch.nn.Linear(self.input_dim, self.output_dim),
@@ -99,11 +105,13 @@ class StanceHeadCrossEnt1L(StanceHeadCrossEnt):
 class StanceHeadCrossEnt2L(StanceHeadCrossEnt):
 
     def __init__(self, vocab: Vocabulary, input_dim: int, output_dim: int, label_namespace: str,
-                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None
-                 ) -> None:
+                 dropout: float = 0.0, class_weights: Union[Dict[str, float], None] = None,
+                 use_sep_repr: bool = False) -> None:
         super().__init__(vocab=vocab, input_dim=input_dim, output_dim=output_dim,
                          label_namespace=label_namespace, dropout=dropout,
-                         class_weights=class_weights)
+                         class_weights=class_weights, use_sep_repr=use_sep_repr)
+        if use_sep_repr:
+            self.input_dim = 2 * self.input_dim
         self.layers = torch.nn.Sequential(
             torch.nn.Dropout(dropout),
             torch.nn.Linear(self.input_dim, self.input_dim),
@@ -200,3 +208,61 @@ class StanceHeadMSE2L(StanceHeadMSE):
             torch.nn.Linear(self.input_dim, 1),
             torch.nn.Sigmoid()
         )
+
+
+# @Head.register('stance_head_ranking')
+# class StanceHeadRanking(StanceHead):
+#
+#     def __init__(self, vocab: Vocabulary, input_dim: int,
+#                  label_to_range: Dict[str, Tuple[float, float]], dropout: float = 0.0) -> None:
+#         super().__init__(vocab=vocab)
+#         self.input_dim = input_dim
+#         self.dropout = dropout
+#         self.label_to_range = label_to_range
+#         self.label_to_index = self._get_label_to_index()
+#         self.metrics = {
+#             'accuracy': CategoricalAccuracy(),
+#             'f1_macro': FBetaMeasure(average='macro')
+#         }
+#         self.mse_loss = torch.nn.MSELoss()
+#
+#     def _get_label_to_index(self) -> Dict[str, int]:
+#         sorted_labels = sorted(self.label_to_range, key=lambda key: self.label_to_range[key])
+#         return {label: index for index, label in enumerate(sorted_labels)}
+#
+#     def _get_pred_labels(self, logits: torch.Tensor) -> List[List[int]]:
+#         """
+#         Args:
+#             logits: tensor of shape (batch-size, output-dims)
+#         """
+#         pred_labels = []
+#         logits_list = logits.tolist()
+#         if isinstance(logits_list, float):
+#             logits_list = [logits]
+#         for num in logits_list:
+#             pred_label = None
+#             for label in self.label_to_range:
+#                 if self.label_to_range[label][0] <= num < self.label_to_range[label][1]:
+#                     if pred_label is None:
+#                         pred_label = label
+#             ohe_pred_label = len(self.label_to_range) * [0]
+#             label_index = self.label_to_index[pred_label]
+#             ohe_pred_label[label_index] = 1
+#             pred_labels.append(ohe_pred_label)
+#         return pred_labels
+#
+#     def forward(self, token_ids_encoded: torch.Tensor, label: torch.Tensor = None
+#                 ) -> Dict[str, torch.Tensor]:
+#         # Shape: (batch_size, num_tokens, embedding_dim)
+#         cls_tokens = token_ids_encoded[:, 0, :]
+#         # Shape: (batch_size, num_labels)
+#         logits = torch.squeeze(self.layers(cls_tokens))
+#         # get predicted labels
+#         pred_labels: List[List[int]] = self._get_pred_labels(logits)
+#         output = {'logits': logits, 'probs': pred_labels}
+#         if label is not None:
+#             pred_labels_tensor = torch.LongTensor(pred_labels)
+#             self.metrics['accuracy'](pred_labels_tensor, label)
+#             self.metrics['f1_macro'](pred_labels_tensor, label)
+#             output['loss'] = self.mse_loss(logits, label.float())
+#         return output
