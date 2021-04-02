@@ -131,6 +131,22 @@ class SnopesReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
+@DatasetReader.register('SemEval2016Task4B')
+class SemEval2016Task4BReader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task4B_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('SemEval2016Task4C')
+class SemEval2016Task4CReader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task4C_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
 DATASET_TO_READER = {
     'SemEval2016Task6': SemEval2016Task6Reader,
     'IBMCS': IBMCSReader,
@@ -141,5 +157,7 @@ DATASET_TO_READER = {
     'PERSPECTRUM': PERSPECTRUMReader,
     'SCD': SCDReader,
     'SemEval2019Task7': SemEval2019Task7Reader,
-    'Snopes': SnopesReader
+    'Snopes': SnopesReader,
+    'SemEval2016Task4B': SemEval2016Task4BReader,
+    'SemEval2016Task4C': SemEval2016Task4CReader,
 }
