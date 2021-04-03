@@ -52,6 +52,7 @@ class StanceHeadCrossEnt(StanceHead):
         self.output_dim = output_dim
         self.dropout = dropout
         self.use_sep_repr = use_sep_repr
+        self.label_namespace = label_namespace + '_labels'
         self.metrics = {
             'accuracy': CategoricalAccuracy(),
             'f1_macro': FBetaMeasure(average='macro')
@@ -59,7 +60,7 @@ class StanceHeadCrossEnt(StanceHead):
         if class_weights:
             weights: List[float] = [0.0] * len(class_weights)
             for label, weight in class_weights.items():
-                label_idx = self.vocab.get_token_index(label, namespace=label_namespace)
+                label_idx = self.vocab.get_token_index(label, namespace=self.label_namespace)
                 weights[label_idx] = weight
             self.class_weights = torch.FloatTensor(weights)
             self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
