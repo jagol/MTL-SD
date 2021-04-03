@@ -61,7 +61,7 @@ class StanceHeadCrossEnt(StanceHead):
             for label, weight in class_weights.items():
                 label_idx = self.vocab.get_token_index(label, namespace=label_namespace)
                 weights[label_idx] = weight
-            self.class_weights = torch.FloatTensor(class_weights)
+            self.class_weights = torch.FloatTensor(weights)
             self.cross_ent = torch.nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.cross_ent = torch.nn.CrossEntropyLoss()
