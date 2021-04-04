@@ -65,7 +65,7 @@ def main(cmd_args: argparse.Namespace) -> None:
             continue
         class_weights = compute_class_weights(class_counts)
         soften_counter = cmd_args.soft
-        if soften_counter > 0:
+        while soften_counter > 0:
             class_weights = soften_class_weights(class_weights)
             soften_counter -= 1
         all_class_weights[corpus_dir] = class_weights
