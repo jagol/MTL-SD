@@ -2,22 +2,27 @@ import os
 import json
 import csv
 import argparse
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 
 scores_type = Dict[str, Dict[str, Dict[str, float]]]
 # {config-name: {dataset-name: {metric: score}}}
 
 
-def extract_scores(results_dir: str, must_end_with: Union[str, None], single: bool = False
-                   ) -> scores_type:
+def extract_scores(results_dir: str, must_end_with: Union[str, None],
+                   must_begin_with: Union[str, None], single: bool = False) -> scores_type:
     scores = {}
     eval_file = 'evaluation.json'
+    print(f'Must begin with: {must_begin_with}')
+    print(f'Must end with: {must_end_with}')
     for config_name in [fn for fn in os.listdir(results_dir) if fn not in ['optuna', 'trial.db']]:
         if single and not config_name.startswith('sT_'):
             continue
         if must_end_with and not config_name.endswith(must_end_with):
             continue
+        if must_begin_with and not config_name.startswith(must_begin_with):
+            continue
+        print(f'processing config: {config_name}')
         eval_fpath = os.path.join(results_dir, config_name, eval_file)
         if not os.path.exists(eval_fpath):
             print(f'Warning: evaluation file does not exist for config {config_name}.')
@@ -75,12 +80,15 @@ def write_single_scores_to_csv(scores: scores_type, fpath_out: str) -> None:
 
 
 def main(cmd_args: argparse.Namespace) -> None:
-    if cmd_args.single:
-        scores = extract_scores(cmd_args.results, cmd_args.must_end_with, single=True)
-        write_single_scores_to_csv(scores, cmd_args.output)
-    else:
-        scores = extract_scores(cmd_args.results, cmd_args.must_end_with, cmd_args.single)
-        write_to_csv(scores, cmd_args.output)
+    # if cmd_args.single:
+    #     scores = extract_scores(cmd_args.results, cmd_args.must_end_with,
+    #                             cmd_args.must_begin_with, single=True)
+    #     write_single_scores_to_csv(scores, cmd_args.output)
+    # else:
+    scores = extract_scores(cmd_args.results, cmd_args.must_end_with, cmd_args.must_begin_with,
+                            cmd_args.single)
+    write_to_csv(scores, cmd_args.output)
+    print(f'Results written to: {cmd_args.output}')
 
 
 if __name__ == '__main__':
@@ -92,5 +100,7 @@ if __name__ == '__main__':
                              'config-name KOMMA corpus-name KOMMA accuarcy KOMMA f1-macro')
     parser.add_argument('-m', '--must_end_with', required=False, default=None,
                         help='If given, only configs that end with given string are processed.')
+    parser.add_argument('-b', '--must_begin_with', required=False, default=None,
+                        help='If given, only configs that start with given string are processed.')
     args = parser.parse_args()
     main(args)
