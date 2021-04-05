@@ -550,6 +550,55 @@ class IMDBProcessor(PreProcessor):
         return instances
 
 
+class ISarcasmProcessor(PreProcessor):
+    corpus_dir = 'ISarcasm'
+    label_mapping = {
+        'sarcastic': LabelsUnified.CON,
+        'not_sarcastic': LabelsUnified.PRO,
+    }
+    file_names_in = {
+        'train_labels': 'data/ISarcasm/isarcasm_train.csv',
+        'train_tweets': 'data/ISarcasm/train_tweets.csv',
+        'test_labels': 'data/ISarcasm/isarcasm_test.csv',
+        'test_tweets': 'data/ISarcasm/test_tweets.csv',
+    }
+    file_names_out = {
+        'train': 'data/ISarcasm/train.jsonl',
+        'dev': 'data/ISarcasm/dev.jsonl',
+        'test': 'data/ISarcasm/test.jsonl',
+    }
+
+    def process(self, dev_size: float) -> None:
+        train_dev_set = self._load(self.file_names_in['train_labels'],
+                                   self.file_names_in['train_tweets'])
+        test_set = self._load(self.file_names_in['test_labels'],
+                              self.file_names_in['test_tweets'])
+        train_set, dev_set = self._split_train_dev_set(train_dev_set, dev_size)
+        random.shuffle(test_set)
+        self._write_to_jsonlfile(train_set, self.file_names_out['train'])
+        self._write_to_jsonlfile(dev_set, self.file_names_out['dev'])
+        self._write_to_jsonlfile(test_set, self.file_names_out['test'])
+
+    def _load(self, fpath_labels: str, fpath_tweets: str) -> instances_type:
+        instances = []
+        with open(fpath_labels) as flabels, open(fpath_tweets) as ftweets:
+            label_reader = csv.reader(flabels)
+            next(label_reader)
+            tweet_reader = csv.reader(ftweets)
+            id_to_label = {id_: label for id_, label, sublabel in label_reader}
+            for id_, tweet in tweet_reader:
+                label_orig = id_to_label[id_]
+                instances.append({
+                    Fields.ID: id_,
+                    Fields.TEXT1: NO_TARGET_TOKEN,
+                    Fields.TEXT2: tweet,
+                    Fields.LABEL_ORIGINAL: label_orig,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label_orig],
+                    Fields.TASK: 'ISarcasm'
+                })
+        return instances
+
+
 class MSRParaProcessor(PreProcessor):
     file_names_in = {
         'train': 'data/MSRPara/msr_paraphrase_train.txt',
@@ -1521,6 +1570,7 @@ CORPUS_NAME_TO_PROCESSOR = {
     'IAC': IACProcessor,
     'IBMCS': IBMCSProcessor,
     'IMDB': IMDBProcessor,
+    'ISarcasm': ISarcasmProcessor,
     'MSRPara': MSRParaProcessor,
     'MultiNLI': MultiNLIProcessor,
     'MultiTargetSD': MultiTargetSDProcessor,
