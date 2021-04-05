@@ -80,14 +80,12 @@ def write_single_scores_to_csv(scores: scores_type, fpath_out: str) -> None:
 
 
 def main(cmd_args: argparse.Namespace) -> None:
-    # if cmd_args.single:
-    #     scores = extract_scores(cmd_args.results, cmd_args.must_end_with,
-    #                             cmd_args.must_begin_with, single=True)
-    #     write_single_scores_to_csv(scores, cmd_args.output)
-    # else:
     scores = extract_scores(cmd_args.results, cmd_args.must_end_with, cmd_args.must_begin_with,
                             cmd_args.single)
-    write_to_csv(scores, cmd_args.output)
+    if cmd_args.single:
+        write_single_scores_to_csv(scores, cmd_args.output)
+    else:
+        write_to_csv(scores, cmd_args.output)
     print(f'Results written to: {cmd_args.output}')
 
 
