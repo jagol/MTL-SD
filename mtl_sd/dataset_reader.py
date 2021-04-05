@@ -53,22 +53,6 @@ class StanceDetectionReader(DatasetReader):
         raise NotImplementedError
 
 
-@DatasetReader.register('SemEval2016Task6')
-class SemEval2016Task6Reader(StanceDetectionReader):
-    label_namespace = 'SemEval2016Task6_labels'
-
-    def encode_label(self, stance: str) -> LabelField:
-        return LabelField(stance, self.label_namespace)
-
-
-@DatasetReader.register('IBMCS')
-class IBMCSReader(StanceDetectionReader):
-    label_namespace = 'IBMCS_labels'
-
-    def encode_label(self, stance: str) -> LabelField:
-        return LabelField(stance, self.label_namespace)
-
-
 @DatasetReader.register('arc')
 class ArcReader(StanceDetectionReader):
     label_namespace = 'arc_labels'
@@ -101,6 +85,14 @@ class IACReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
+@DatasetReader.register('IBMCS')
+class IBMCSReader(StanceDetectionReader):
+    label_namespace = 'IBMCS_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
 @DatasetReader.register('PERSPECTRUM')
 class PERSPECTRUMReader(StanceDetectionReader):
     label_namespace = 'PERSPECTRUM_labels'
@@ -112,6 +104,14 @@ class PERSPECTRUMReader(StanceDetectionReader):
 @DatasetReader.register('SCD')
 class SCDReader(StanceDetectionReader):
     label_namespace = 'SCD_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('SemEval2016Task6')
+class SemEval2016Task6Reader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task6_labels'
 
     def encode_label(self, stance: str) -> LabelField:
         return LabelField(stance, self.label_namespace)
@@ -150,14 +150,14 @@ class SemEval2016Task4CReader(StanceDetectionReader):
 
 
 DATASET_TO_READER = {
-    'SemEval2016Task6': SemEval2016Task6Reader,
-    'IBMCS': IBMCSReader,
     'arc': ArcReader,
     'ArgMin': ArgMinReader,
     'FNC1': FNC1Reader,
     'IAC': IACReader,
+    'IBMCS': IBMCSReader,
     'PERSPECTRUM': PERSPECTRUMReader,
     'SCD': SCDReader,
+    'SemEval2016Task6': SemEval2016Task6Reader,
     'SemEval2019Task7': SemEval2019Task7Reader,
     'Snopes': SnopesReader,
     'SemEval2016Task4B': SemEval2016Task4BReader,
