@@ -19,11 +19,13 @@ class StanceDetectionReader(DatasetReader):
                  tokenizer: Tokenizer = None,
                  token_indexers: Dict[str, TokenIndexer] = None,
                  max_sequence_length: int = None,
+                 label_type: str = 'label_orig',
                  **kwargs):
         super().__init__(**kwargs)
         self.tokenizer = tokenizer
         self.token_indexers = token_indexers or {'tokens': SingleIdTokenIndexer()}
         self.max_sequence_length = max_sequence_length
+        self.label_type = label_type
 
     def _read(self, file_path: str) -> Iterable[Instance]:
         with open(file_path) as fin:
@@ -31,7 +33,7 @@ class StanceDetectionReader(DatasetReader):
                 instance_dict = json.loads(line)
                 target = instance_dict['text1']
                 text = instance_dict['text2']
-                label = instance_dict['label_orig']
+                label = instance_dict[self.label_type]
                 yield self.text_to_instance(target, text, label)
 
     def text_to_instance(self, target: str, text: str, label: str = None) -> Instance:
