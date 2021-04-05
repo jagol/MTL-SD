@@ -69,6 +69,14 @@ class ArgMinReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
+@DatasetReader.register('CoLA')
+class CoLAReader(StanceDetectionReader):
+    label_namespace = 'CoLA_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
 @DatasetReader.register('FNC1')
 class FNC1Reader(StanceDetectionReader):
     label_namespace = 'FNC1_labels'
@@ -93,6 +101,46 @@ class IBMCSReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
+@DatasetReader.register('IMDB')
+class IMDBReader(StanceDetectionReader):
+    label_namespace = 'IMDB_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('ISarcasm')
+class ISarcasmReader(StanceDetectionReader):
+    label_namespace = 'ISarcasm_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('MSRPara')
+class MSRParaReader(StanceDetectionReader):
+    label_namespace = 'MSRPara_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('MultiNLI')
+class MultiNLIReader(StanceDetectionReader):
+    label_namespace = 'MultiNLI_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('MultiTargetSD')
+class MultiTargetSDReader(StanceDetectionReader):
+    label_namespace = 'MultiTargetSD_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
 @DatasetReader.register('PERSPECTRUM')
 class PERSPECTRUMReader(StanceDetectionReader):
     label_namespace = 'PERSPECTRUM_labels'
@@ -101,9 +149,49 @@ class PERSPECTRUMReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
+@DatasetReader.register('QQP')
+class QQPReader(StanceDetectionReader):
+    label_namespace = 'QQP_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('RTE')
+class RTEReader(StanceDetectionReader):
+    label_namespace = 'RTE_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
 @DatasetReader.register('SCD')
 class SCDReader(StanceDetectionReader):
     label_namespace = 'SCD_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('SemEval2016Task4A')
+class SemEval2016Task4AReader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task4A_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('SemEval2016Task4B')
+class SemEval2016Task4BReader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task4B_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('SemEval2016Task4C')
+class SemEval2016Task4CReader(StanceDetectionReader):
+    label_namespace = 'SemEval2016Task4C_labels'
 
     def encode_label(self, stance: str) -> LabelField:
         return LabelField(stance, self.label_namespace)
@@ -133,17 +221,33 @@ class SnopesReader(StanceDetectionReader):
         return LabelField(stance, self.label_namespace)
 
 
-@DatasetReader.register('SemEval2016Task4B')
-class SemEval2016Task4BReader(StanceDetectionReader):
-    label_namespace = 'SemEval2016Task4B_labels'
+@DatasetReader.register('SST')
+class SSTReader(StanceDetectionReader):
+    label_namespace = 'SST_labels'
 
     def encode_label(self, stance: str) -> LabelField:
         return LabelField(stance, self.label_namespace)
 
 
-@DatasetReader.register('SemEval2016Task4C')
-class SemEval2016Task4CReader(StanceDetectionReader):
-    label_namespace = 'SemEval2016Task4C_labels'
+@DatasetReader.register('STSB')
+class STSBReader(StanceDetectionReader):
+    label_namespace = 'STSB_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('TargetDepSA')
+class TargetDepSAReader(StanceDetectionReader):
+    label_namespace = 'TargetDepSA_labels'
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
+
+
+@DatasetReader.register('WNLI')
+class WNLIReader(StanceDetectionReader):
+    label_namespace = 'WNLI_labels'
 
     def encode_label(self, stance: str) -> LabelField:
         return LabelField(stance, self.label_namespace)
@@ -152,14 +256,27 @@ class SemEval2016Task4CReader(StanceDetectionReader):
 DATASET_TO_READER = {
     'arc': ArcReader,
     'ArgMin': ArgMinReader,
+    'CoLA': CoLAReader,
     'FNC1': FNC1Reader,
     'IAC': IACReader,
     'IBMCS': IBMCSReader,
+    'IMDB': IMDBReader,
+    'ISarcasm': ISarcasmReader,
+    'MSRPara': MSRParaReader,
+    'MultiNLI': MultiNLIReader,
+    'MultiTargetSD': MultiTargetSDReader,
     'PERSPECTRUM': PERSPECTRUMReader,
+    'QQP': QQPReader,
+    'RTE': RTEReader,
     'SCD': SCDReader,
+    'SemEval2016Task4A': SemEval2016Task4AReader,
+    'SemEval2016Task4B': SemEval2016Task4BReader,
+    'SemEval2016Task4C': SemEval2016Task4CReader,
     'SemEval2016Task6': SemEval2016Task6Reader,
     'SemEval2019Task7': SemEval2019Task7Reader,
     'Snopes': SnopesReader,
-    'SemEval2016Task4B': SemEval2016Task4BReader,
-    'SemEval2016Task4C': SemEval2016Task4CReader,
+    'SST': SSTReader,
+    'STSB': STSBReader,
+    'TargetDepSA': TargetDepSAReader,
+    'WNLI': WNLIReader,
 }
