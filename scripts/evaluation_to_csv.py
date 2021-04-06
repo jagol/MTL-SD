@@ -1,6 +1,7 @@
 import json
 import os
 import argparse
+from collections import OrderedDict
 
 
 """Extract evaluation results and relevant config and print as csv-line.
@@ -14,33 +15,55 @@ Tasks that were not predicted on lead to empty columns.
 """
 
 
+DATASETS = ['arc', 'ArgMin', 'FNC1', 'IAC', 'IBMCS', 'PERSPECTRUM', 'SCD', 'SemEval2016Task6',
+            'SemEval2019Task7', 'Snopes']
+
+
 def main(cmd_args: argparse.Namespace) -> None:
-    header = ['avg_f1_macro', 'avg_accuracy'] + os.listdir(cmd_args.data_dir)
-    eval_path = os.path.join('results/', cmd_args.config, 'evaluation.json')
+    eval_path = os.path.join(cmd_args.evaluation_file)
     with open(eval_path) as feval:
         eval_dict = json.load(feval)
-    f1_macros = []
-    accs = []
-    for task in header:
-        if task in eval_dict:
-            f1_macros.append(eval_dict[task]['f1_macro'])
-            accs.append(eval_dict[task]['accuracy'])
+    if cmd_args.benchmark:
+        results = OrderedDict([(d, None) for d in DATASETS])
+    else:
+        results = OrderedDict([(d, None) for d in eval_dict])
+
+    for dataset in results:
+        if dataset in eval_dict:
+            results[dataset] = {
+                'f1_macro': eval_dict[dataset]['f1_macro'],
+                'accuracy': eval_dict[dataset]['accuracy']
+            }
         else:
-            f1_macros.append('')
-            accs.append('')
-    avg_f1_macro = sum([n for n in f1_macros if n]) / len([n for n in f1_macros if n])
+            raise Exception(f'There are not results for dataset {dataset}')
+
+    for dataset in eval_dict:
+        if dataset not in results:
+            print(f'Warning: Results for dataset {dataset} not used in output.')
+
+    accs = [results[dataset]['accuracy'] for dataset in results]
+    f1_macros = [results[dataset]['f1_macro'] for dataset in results]
+
     avg_acc = sum([n for n in accs if n]) / len([n for n in accs if n])
-    results = []
-    for f1, acc in zip(f1_macros, accs):
-        results.append(f1)
-        results.append(acc)
+    avg_f1_macro = sum([n for n in f1_macros]) / len([n for n in f1_macros])
+
+    header = ['avg_acc', 'avg_f1_macro']
+    row = [avg_acc, avg_f1_macro]
+    for dataset in results:
+        header.append(dataset + '_acc')
+        header.append(dataset + '_f1_macro')
+        row.append(results[dataset]['accuracy'])
+        row.append(results[dataset]['f1_macro'])
+
     print(','.join(header))
-    print(','.join([str(avg_f1_macro), str(avg_acc)] + [str(r) for r in results]))
+    print(','.join([str(r) for r in row]))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config', help='Name of config.')
-    parser.add_argument('-d', '--data_dir', help='Path to data folder.')
+    parser.add_argument('-e', '--evaluation_file', help='Path to evaluation file.')
+    parser.add_argument('-b', '--benchmark', action='store_true',
+                        help='Use the benchmark datasets from "How robust is your stance '
+                             'detection?"')
     args = parser.parse_args()
     main(args)
