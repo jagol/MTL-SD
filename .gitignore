@@ -12,3 +12,4 @@ temp_bash/*
 data_distrs/*
 corpus_stats/*
 configs/*
+evaluations/*
