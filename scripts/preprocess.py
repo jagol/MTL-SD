@@ -536,14 +536,15 @@ class IMDBProcessor(PreProcessor):
 
     def _load(self, fdir: str) -> instances_type:
         instances = []
+        label = 'pos' if 'pos' in fdir else 'neg'
         for fname in os.listdir(fdir):
             with open(osjoin(fdir, fname)) as fin:
                 instances.append({
                     Fields.ID: self.instance_id,
                     Fields.TEXT1: NO_TARGET_TOKEN,
                     Fields.TEXT2: fin.read().strip(),
-                    Fields.LABEL_ORIGINAL: 'pos',
-                    Fields.LABEL_UNIFIED: self.label_mapping['pos'],
+                    Fields.LABEL_ORIGINAL: label,
+                    Fields.LABEL_UNIFIED: self.label_mapping[label],
                     Fields.TASK: 'IMDB'
                 })
                 self.instance_id += 1
