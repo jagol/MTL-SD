@@ -121,6 +121,19 @@ def print_all_labels(train_stats: Dict[str, Dict[str, Tuple[int, float]]],
         print(f"Labels in train, dev, test: {', '.join(labels_total)}")
 
 
+def print_labels_one_line(stats: Dict[str, Dict[str, Tuple[int, float]]]) -> None:
+    key = 'LABELS_ORIG'
+    output = ''
+    num_labels = len(stats[key])
+    for i, label in enumerate(stats[key]):
+        perc = stats[key][label][1]
+        if i == num_labels - 1:
+            output += f'{label}: {100 * perc:.1f}%'
+        else:
+            output += f'{label}: {100*perc:.1f}%, '
+    print(output)
+
+
 def main(args: argparse.Namespace) -> None:
     train_stats = compute_stats(os.path.join(args.path, 'train.jsonl'))
     dev_stats = compute_stats(os.path.join(args.path, 'dev.jsonl'))
@@ -134,6 +147,7 @@ def main(args: argparse.Namespace) -> None:
                 per_set=args.per_set, unified=args.unified)
     print_all_labels(train_stats_perc, dev_stats_perc, test_stats_perc, total_stats_perc,
                      per_set=args.per_set)
+    print_labels_one_line(total_stats_perc)
     path_name = args.path.replace('/', '-')
     json.dump(
         {
