@@ -83,14 +83,15 @@ def print_stats(train_stats: Dict[str, Dict[str, Tuple[int, float]]],
     print_set_stats(total_stats, unified)
 
 
-def print_set_stats(subset: Dict[str, Dict[str, Tuple[int, float]]], unified: bool = False) -> None:
+def print_set_stats(subset: Dict[str, Dict[str, Tuple[int, float]]],
+                    unified: bool = False) -> None:
     print('LABELS ORIGINAL:')
     for label, (freq, perc) in subset['LABELS_ORIG'].items():
-        print(f'  {label}: {freq} / {100*perc:.1f}%')
+        print(f'  {label}: {freq} / {100 * perc:.1f}%')
     if unified:
         print('LABELS UNIFIED:')
         for label, (freq, perc) in subset['LABELS_UNIFIED'].items():
-            print(f'  {label}: {freq} / {100*perc:.1f}%')
+            print(f'  {label}: {freq} / {100 * perc:.1f}%')
 
 
 def print_all_labels(train_stats: Dict[str, Dict[str, Tuple[int, float]]],
@@ -124,13 +125,14 @@ def print_all_labels(train_stats: Dict[str, Dict[str, Tuple[int, float]]],
 def print_labels_one_line(stats: Dict[str, Dict[str, Tuple[int, float]]]) -> None:
     key = 'LABELS_ORIG'
     output = ''
-    num_labels = len(stats[key])
-    for i, label in enumerate(stats[key]):
+    labels = [label for label in list(stats[key].keys()) if label != 'total_instances']
+    num_labels = len(labels)
+    for i, label in enumerate(labels):
         perc = stats[key][label][1]
         if i == num_labels - 1:
             output += f'{label}: {100 * perc:.1f}%'
         else:
-            output += f'{label}: {100*perc:.1f}%, '
+            output += f'{label}: {100 * perc:.1f}%, '
     print(output)
 
 
