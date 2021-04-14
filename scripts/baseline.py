@@ -8,7 +8,7 @@ import argparse
 import string
 import logging
 from collections import defaultdict
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 
 import numpy
 import numpy as np
@@ -116,7 +116,7 @@ def precompute_ngrams(train_instances: List[Instance]) -> None:
 
 def compute_most_freq_ngrams(train_instances: List[Instance], max_number: int, length: int,
                              target: bool) -> List[str]:
-    logger.info(f'Compute most frequent {length}grams.')
+    logger.info(f'Compute most frequent {length}grams')
     ngrams = defaultdict(int)
     for instance in train_instances:
         if target:
@@ -250,7 +250,9 @@ def load_svm(serialization_dir: str) -> SVC:
         return pickle.load(fin)
 
 
-def compute_scores(y_true: numpy.ndarray, y_pred: numpy.ndarray) -> Dict[str, float]:
+def compute_scores(y_true: Union[numpy.ndarray, List[str]],
+                   y_pred: Union[numpy.ndarray, List[str]]
+                   ) -> Dict[str, float]:
     return {
         'f1_macro': float(f1_score(y_true, y_pred, average='macro')),
         'f1_micro': float(f1_score(y_true, y_pred, average='micro')),
@@ -338,6 +340,22 @@ def generate_majority_labels(corpus: str, args: argparse.Namespace) -> List[str]
     return pred_labels
 
 
+def get_scores(corpora: List[str], args: argparse.Namespace) -> List[float]:
+    corpora_sort = sorted(corpora)
+    scores = []
+    for corpus in sorted(corpora_sort):
+        fpath = os.path.join(args.serialization_dir, f'{corpus}_{args.mode}_baseline.json')
+        with open(fpath) as fin:
+            d = json.load(fin)
+        scores.append(d['f1_micro'])
+        scores.append(d['f1_macro'])
+    return scores
+
+
+def as_percentages(scores: List[float]) -> List[float]:
+    return [round(100 * s, 1) for s in scores]
+
+
 def main(args: argparse.Namespace) -> None:
     benchmark_corpora = ['arc', 'ArgMin', 'FNC1', 'IAC', 'IBMCS', 'PERSPECTRUM', 'SCD',
                          'SemEval2016Task6', 'SemEval2019Task7', 'Snopes']
@@ -362,7 +380,7 @@ def main(args: argparse.Namespace) -> None:
         logger.info('Train SVM')
         train_svm(args)
     elif args.mode == 'eval-dev' or args.mode == 'eval-test':
-        logger.info('Evaluate SVM.')
+        logger.info('Evaluate SVM')
         evaluate(args)
     elif args.mode == 'random':
         for corpus in benchmark_corpora:
@@ -371,6 +389,10 @@ def main(args: argparse.Namespace) -> None:
             metrics = compute_scores(y_true, y_pred)
             fpath_out = os.path.join(args.serialization_dir, f'{corpus}_random_baseline.json')
             save_dict(metrics, fpath_out)
+        scores = as_percentages(get_scores(benchmark_corpora, args))
+        msg = 'Accuracies and f1-macro scores for all benchmark corpora, sorted alphabetically:'
+        logger.info(msg)
+        logger.info(scores)
     elif args.mode == 'majority':
         for corpus in benchmark_corpora:
             y_true = load_true_test_labels(corpus, args)
@@ -378,6 +400,10 @@ def main(args: argparse.Namespace) -> None:
             metrics = compute_scores(y_true, y_pred)
             fpath_out = os.path.join(args.serialization_dir, f'{corpus}_majority_baseline.json')
             save_dict(metrics, fpath_out)
+        scores = as_percentages(get_scores(benchmark_corpora, args))
+        msg = 'Accuracies and f1-macro scores for all benchmark corpora, sorted alphabetically:'
+        logger.info(msg)
+        logger.info(scores)
     logger.info('Done')
 
 
@@ -391,9 +417,9 @@ if __name__ == '__main__':
                         help='Path to directory where cached ngrams and model are saved.')
     parser.add_argument('-m' '--max_instances', default=None, type=int,
                         help='Max instances to load from train-file.')
-    parser.add_argument('--max_1gram', type=int, default=5000)
-    parser.add_argument('--max_2gram', type=int, default=5000)
-    parser.add_argument('--max_3gram', type=int, default=5000)
+    parser.add_argument('--max_1gram', type=int, default=3000)
+    parser.add_argument('--max_2gram', type=int, default=3000)
+    parser.add_argument('--max_3gram', type=int, default=3000)
     parser.add_argument('-t', '--label_type', choices=['label_orig', 'label_uni'])
     cmd_args = parser.parse_args()
     logger = get_logger(cmd_args)
