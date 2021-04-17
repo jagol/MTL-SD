@@ -4,6 +4,11 @@ import os
 from collections import defaultdict
 from typing import List, Dict, Tuple, DefaultDict
 
+import numpy as np
+from scipy.stats import kurtosis
+from scipy.stats import entropy
+
+
 """Compute the class distribution of a given corpus.
 
 Usage: python3 compute_class_distr.py -p <path_to_corpus>
@@ -136,31 +141,68 @@ def print_labels_one_line(stats: Dict[str, Dict[str, Tuple[int, float]]]) -> Non
     print(output)
 
 
+def join_labels(path: str, label_type: str) -> List[str]:
+    fpath_train = os.path.join(path, 'train.jsonl')
+    fpath_dev = os.path.join(path, 'dev.jsonl')
+    fpath_test = os.path.join(path, 'test.jsonl')
+    labels = []
+    for path in [fpath_train, fpath_dev, fpath_test]:
+        with open(path) as f:
+            for line in f:
+                d = json.loads(line)
+                labels.append(d[label_type])
+    return labels
+
+
+def compute_kurtosis(data: List[int]) -> float:
+    return kurtosis(np.array(data), axis=0, fisher=False)
+
+
+def compute_entropy(data: List[int]) -> float:
+    return entropy(np.array(data))
+
+
 def main(args: argparse.Namespace) -> None:
+    print('Computing label distribution')
     train_stats = compute_stats(os.path.join(args.path, 'train.jsonl'))
     dev_stats = compute_stats(os.path.join(args.path, 'dev.jsonl'))
     test_stats = compute_stats(os.path.join(args.path, 'test.jsonl'))
-    total_stats_perc = add_total(add_percentages(aggregate_stats(
-        [train_stats, dev_stats, test_stats])))
-    train_stats_perc = add_total(add_percentages(train_stats))
-    dev_stats_perc = add_total(add_percentages(dev_stats))
-    test_stats_perc = add_total(add_percentages(test_stats))
-    print_stats(train_stats_perc, dev_stats_perc, test_stats_perc, total_stats_perc,
-                per_set=args.per_set, unified=args.unified)
-    print_all_labels(train_stats_perc, dev_stats_perc, test_stats_perc, total_stats_perc,
-                     per_set=args.per_set)
-    print_labels_one_line(total_stats_perc)
-    path_name = args.path.replace('/', '-')
-    json.dump(
-        {
-            'train': train_stats_perc,
-            'dev': dev_stats_perc,
-            'test': test_stats_perc,
-            'total': total_stats_perc
-        },
-        open(os.path.join(cmd_args.output_dir, f'stats_{path_name}.json'), 'w'),
-        indent=4
-    )
+    total_stats = aggregate_stats([train_stats, dev_stats, test_stats])
+    if args.distribution:
+        print('Processing label distribution for output.')
+        total_stats_perc = add_total(add_percentages(aggregate_stats(
+            [train_stats, dev_stats, test_stats])))
+        train_stats_perc = add_total(add_percentages(train_stats))
+        dev_stats_perc = add_total(add_percentages(dev_stats))
+        test_stats_perc = add_total(add_percentages(test_stats))
+        print_stats(train_stats_perc, dev_stats_perc, test_stats_perc, total_stats_perc,
+                    per_set=args.per_set, unified=args.unified)
+        print_all_labels(train_stats_perc, dev_stats_perc, test_stats_perc, total_stats_perc,
+                         per_set=args.per_set)
+        print_labels_one_line(total_stats_perc)
+        path_name = args.path.replace('/', '-')
+        json.dump(
+            {
+                'train': train_stats_perc,
+                'dev': dev_stats_perc,
+                'test': test_stats_perc,
+                'total': total_stats_perc
+            },
+            open(os.path.join(cmd_args.output_dir, f'stats_{path_name}.json'), 'w'),
+            indent=4
+        )
+    if args.kurtosis:
+        print('Comping kurtosis')
+        kurtosis_orig = compute_kurtosis(list(total_stats['LABELS_ORIG'].values()))
+        kurtosis_uni = compute_kurtosis(list(total_stats['LABELS_UNIFIED'].values()))
+        print(f'Kurtosis orig: {kurtosis_orig:.3f}')
+        print(f'Kurtosis orig: {kurtosis_uni:.3f}')
+    if args.entropy:
+        print('Computing entropy')
+        entropy_orig = compute_entropy(list(total_stats['LABELS_ORIG'].values()))
+        entropy_uni = compute_entropy(list(total_stats['LABELS_ORIG'].values()))
+        print(f'Entropy orig: {entropy_orig:.3f}')
+        print(f'Entropy uni: {entropy_uni:.3f}')
 
 
 if __name__ == '__main__':
@@ -169,6 +211,12 @@ if __name__ == '__main__':
                         help='Path to directory containing the jsonl-files.')
     parser.add_argument('-u', '--unified', action='store_true')
     parser.add_argument('-s', '--per_set', action='store_true')
+    parser.add_argument('-d', '--distribution', action='store_true',
+                        help='Compute and output label distributions of corpora.')
     parser.add_argument('-o', '--output_dir', help='Path to output directory.')
+    parser.add_argument('-k', '--kurtosis', action='store_true',
+                        help='Compute kurtosis of label distr.')
+    parser.add_argument('-e', '--entropy', action='store_true',
+                        help='Compute entropy of label distr.')
     cmd_args = parser.parse_args()
     main(cmd_args)
