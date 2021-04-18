@@ -38,7 +38,7 @@ def extract_scores(results_dir: str, must_end_with: Union[str, None],
     return scores
 
 
-def write_to_csv(scores: scores_type, fpath_out: str) -> None:
+def write_to_csv(scores: scores_type, fpath_out: str, percent: bool) -> None:
     datasets = []
     for config_name in scores:
         for dsname in scores[config_name]:
@@ -52,9 +52,17 @@ def write_to_csv(scores: scores_type, fpath_out: str) -> None:
             dataset = column_name.split('_')[0]
             if dataset in config_scores:
                 if column_name.endswith('acc'):
-                    row.append(round(config_scores[dataset]['acc'], 4))
+                    if percent:
+                        score = 100 * config_scores[dataset]['acc']
+                        row.append(score)
+                    else:
+                        row.append(config_scores[dataset]['acc'])
                 elif column_name.endswith('f1_macro'):
-                    row.append(round(config_scores[dataset]['f1_macro'], 4))
+                    if percent:
+                        score = 100 * config_scores[dataset]['f1_macro']
+                        row.append(score)
+                    else:
+                        row.append(config_scores[dataset]['f1_macro'])
                 else:
                     raise Exception(f'Invalid column-name: {column_name}')
             else:
@@ -83,9 +91,9 @@ def main(cmd_args: argparse.Namespace) -> None:
     scores = extract_scores(cmd_args.results, cmd_args.must_end_with, cmd_args.must_begin_with,
                             cmd_args.single)
     if cmd_args.single:
-        write_single_scores_to_csv(scores, cmd_args.output)
+        write_single_scores_to_csv(scores, cmd_args.output, cmd_args.percent)
     else:
-        write_to_csv(scores, cmd_args.output)
+        write_to_csv(scores, cmd_args.output, cmd_args.percent)
     print(f'Results written to: {cmd_args.output}')
 
 
@@ -100,5 +108,6 @@ if __name__ == '__main__':
                         help='If given, only configs that end with given string are processed.')
     parser.add_argument('-b', '--must_begin_with', required=False, default=None,
                         help='If given, only configs that start with given string are processed.')
+    parser.add_argument('-p', '--percent', action='store_true', help='output results in percent.')
     args = parser.parse_args()
     main(args)
