@@ -2,11 +2,7 @@ import os
 import csv
 import argparse
 import random
-from typing import Dict, List, Union
-
-# import numpy as np
-# import bootstrapped.bootstrap as bs
-# import bootstrapped.stats_functions as bs_stats
+from typing import Dict, List, Union, Tuple
 
 
 result_type = Dict[str, Union[float, str]]
@@ -17,10 +13,32 @@ population_type = List[result_type]
 # A population is a list of results.
 
 
+label_mapping = {
+    'arc': 'h',
+    'ArgMin': 'l',
+    'FNC1': 'h',
+    'IAC': 'l',
+    'IBMCS': 'l',
+    'PERSPECTRUM': 'l',
+    'SCD': 'l',
+    'SemEval2016Task6': 'l',
+    'SemEval2019Task7': 'h',
+    'Snopes': 'l'
+}
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--path', 'Path to input file contianing test set results in csv.')
-    parser.add_argument('-i', '--iterations', help='Number of bootstrapping samples to compute.')
+    parser.add_argument('-p', '--path',
+                        help='Path to input file contianing test set results in csv.')
+    parser.add_argument('-i', '--iterations', type=int,
+                        help='Number of bootstrapping samples to compute.')
+    parser.add_argument('-v', '--value', type=int, help='Column index for result value.')
+    parser.add_argument('-n', '--name', type=int, help='Column index for result name.')
+    parser.add_argument('-b', '--begin',
+                        help='Only consider rows/results whose name begins with given string.')
+    parser.add_argument('-e', '--end',
+                        help='Only consider rows/results whose name ends with given string.')
     return parser.parse_args()
 
 
@@ -45,8 +63,10 @@ def bootstrap_test_statistics(population: population_type,
 
 def compute_test_statistic(group_0: population_type,
                            group_1: population_type) -> float:
-    mean_0 = sum(group_0) / len(group_0)
-    mean_1 = sum(group_1) / len(group_1)
+    values_0 = [float(i['value']) for i in group_0]
+    values_1 = [float(i['value']) for i in group_1]
+    mean_0 = sum(values_0) / len(values_0)
+    mean_1 = sum(values_1) / len(values_1)
     diff = abs(mean_0 - mean_1)
     return diff
 
@@ -55,15 +75,29 @@ def load_population(args: argparse.Namespace) -> population_type:
     population = []
     with open(args.path) as fin:
         reader = csv.reader(fin)
-        for name, value, label in reader:
+        for row in reader:
+            name = row[args.name]
+            if args.begin and not name.startswith(args.begin):
+                continue
+            if args.end and not name.endswith(args.end):
+                continue
+            if 'shtl' in name:
+                continue
+            if '_wo_' in name:
+                continue
             population.append(
                 {
                     'name': name,
-                    'value': value,
-                    'label': label
+                    'value': row[args.value],
+                    'label': get_label_from_name(name)
                 }
             )
-        return population
+    return population
+
+
+def get_label_from_name(name: str) -> str:
+    aux_corpus = name.split('_')[1]
+    return label_mapping[aux_corpus]
 
 
 def compute_p_value(bootstrapped_test_stat: List[float], observerd_test_stat: float
@@ -88,3 +122,7 @@ def main():
     print(f'Number of bootstrapped samples: {len(bs_test_statistics)}')
     print(f'Number of bootstrapped samples over observed sample: {over_observed}')
     print(f'P value: {p_val}')
+
+
+if __name__ == '__main__':
+    main()
