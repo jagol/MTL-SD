@@ -45,3 +45,37 @@ class MultiTaskStancePredictor(MultiTaskPredictor):
         del outputs['mask']
         del outputs['type_ids']
         return sanitize(outputs)
+
+
+@Predictor.register("multitask_stance_regression")
+class MultiTaskStanceRegressionPredictor(MultiTaskStancePredictor):
+    """Subclass MultiTaskPredictor to prevent encoder outputs being
+    written to output files.
+    """
+
+    @overrides
+    def _json_to_instance(self, json_dict: JsonDict) -> Instance:
+        task = json_dict["task"]
+        del json_dict["task"]
+        task += '_regr'
+        predictor = self.predictors[task]
+        instance = predictor._json_to_instance(json_dict)
+        instance.add_field("task", MetadataField(task))
+        return instance
+
+
+@Predictor.register("multitask_stance_classification")
+class MultiTaskStanceClassificationPredictor(MultiTaskStancePredictor):
+    """Subclass MultiTaskPredictor to prevent encoder outputs being
+    written to output files.
+    """
+
+    @overrides
+    def _json_to_instance(self, json_dict: JsonDict) -> Instance:
+        task = json_dict["task"]
+        del json_dict["task"]
+        task += '_class'
+        predictor = self.predictors[task]
+        instance = predictor._json_to_instance(json_dict)
+        instance.add_field("task", MetadataField(task))
+        return instance
