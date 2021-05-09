@@ -58,6 +58,7 @@ done
 echo "Compute metrics for predictions..."
 python3 scripts/evaluate.py --predictions "${results_dir}/${1}/predictions/" --labels $2 --evaluation "${results_dir}/${1}/evaluation.json" --vocab "${results_dir}/${1}/vocabulary" --label_type $4 --data_dir $data_dir
 echo "Main metrics as csv:"
-python3 scripts/evaluation_to_csv.py -e "${results_dir}/${1}/evaluation.json" -b
+python3 scripts/evaluation_to_csv.py -e "${results_dir}/${1}/evaluation.json"
 
-rm "${results_dir}/*.th"
+echo "Remove checkpoints..."
+rm "${results_dir}/$1/"*.th
