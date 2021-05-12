@@ -29,7 +29,7 @@ label_mapping = {
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path',
-                        help='Path to input file contianing test set results in csv.')
+                        help='Path to input file containing test set results in csv.')
     parser.add_argument('-i', '--iterations', type=int,
                         help='Number of bootstrapping samples to compute.')
     parser.add_argument('-v', '--value', type=int, help='Column index for result value.')
@@ -80,9 +80,9 @@ def load_population(args: argparse.Namespace) -> population_type:
                 continue
             if args.end and not name.endswith(args.end):
                 continue
-            if 'shtl' in name:
-                continue
-            if '_wo_' in name:
+            # if 'shtl' in name:
+            #     continue
+            if '_wo' in name:
                 continue
             population.append(
                 {
