@@ -1,8 +1,9 @@
 import argparse
+import collections
 import json
 import os
 from collections import defaultdict
-from typing import List, Dict, Tuple, DefaultDict
+from typing import List, Dict, Tuple, DefaultDict, Union
 
 import numpy as np
 from scipy.stats import kurtosis
@@ -154,12 +155,15 @@ def join_labels(path: str, label_type: str) -> List[str]:
     return labels
 
 
-def compute_kurtosis(data: List[int]) -> float:
+def compute_kurtosis(data: List[Union[int, str]]) -> float:
     return kurtosis(np.array(data), axis=0, fisher=False)
 
 
-def compute_entropy(data: List[int]) -> float:
-    return entropy(np.array(data))
+def compute_entropy(data: List[Union[int, str]]) -> float:
+    class_freqs = collections.Counter(data)
+    total_occs = sum(class_freqs.values())
+    class_distr = [cf / total_occs for cf in class_freqs.values()]
+    return entropy(np.array(class_distr))
 
 
 def main(args: argparse.Namespace) -> None:
