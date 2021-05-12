@@ -35,7 +35,7 @@ def main(cmd_args: argparse.Namespace) -> None:
                 'accuracy': eval_dict[dataset]['accuracy']
             }
         else:
-            raise Exception(f'There are not results for dataset {dataset}')
+            print(f'Warning: There are no results for dataset {dataset}')
 
     for dataset in eval_dict:
         if dataset not in results:
