@@ -10,6 +10,13 @@ from sklearn.metrics import (f1_score, accuracy_score, recall_score, precision_s
 from allennlp.data.vocabulary import Vocabulary
 
 
+label_to_range = {
+    'arc': {"disagree": [0, 0.33], "unrelated": [0.33, 0.67], "discuss": [0.33, 0.67], "agree": [0.67, 1.0]},
+    'FNC1': {"disagree": [0, 0.33], "unrelated": [0.33, 0.67], "discuss": [0.33, 0.67], "agree": [0.67, 1.0]},
+    'SemEval2019Task7': {"deny": [0, 0.33], "comment": [0.33, 0.67], "query": [0.33, 0.67], "support": [0.67, 1.0]}
+}
+
+
 def load_predictions(fpath: str, fname: str = None) -> List[int]:
     if fname:
         fpath = os.path.join(fpath, fname)
@@ -160,15 +167,85 @@ def write_confms_to_file(conf_matrices: Dict[str, List[List[int]]],
                 writer.writerow(['true_' + header[i]] + [str(num) for num in row])
 
 
+def infer_pred_paths(pred_path: str, fname: str) -> Tuple[str, str]:
+    if 'regr' in fname:
+        fname_regr = fname
+        fname_class = fname.replace('regr', 'class')
+    elif 'class' in fname:
+        fname_regr = fname.replace('class', 'regr')
+        fname_class = fname
+    else:
+        raise Exception('Either "regr" or "class" must be in fname.')
+    return os.path.join(pred_path, fname_class), os.path.join(pred_path, fname_regr)
+
+
+def load_regr_predictions(regr_pred_path: str) -> List[int]:
+    predictions = []
+    with open(regr_pred_path) as fin:
+        for line in fin:
+            d = json.loads(line)
+            idx = int(np.argmax(d['IBMCS_regr_probs']))
+            predictions.append(idx)
+    return predictions
+
+
+def combine_preds(preds_class: List[int], preds_regr: List[int]) -> List[int]:
+    """
+    Only combine when corpus has more than 3 classes (and ignore class-file in other cases)
+    Or always combine?
+    """
+    predictions = []
+    for pred_cls, pred_regr in zip(preds_class, preds_regr):
+        if pred_regr == 1:
+            predictions.append(pred_cls)
+        else:
+            predictions.append(pred_regr)
+    return predictions
+
+
+def load_regr_class_predictions(pred_path: str, fname: str) -> List[int]:
+    path_preds_class, path_preds_regr = infer_pred_paths(pred_path, fname)
+    preds_class = load_predictions(path_preds_class)
+    preds_regr = load_regr_predictions(path_preds_regr)
+    return combine_preds(preds_class, preds_regr)
+
+
 def main(cmd_args):
     predictions = {}
     if os.path.isdir(cmd_args.predictions):
+        list_to_skip = []
         for fname in os.listdir(cmd_args.predictions):
-            corpus = fname.split('.')[0]
-            predictions[corpus] = load_predictions(cmd_args.predictions, fname=fname)
+            if fname in list_to_skip:
+                continue
+            if 'regr' in fname or 'class' in fname:
+                if 'regr' in fname:
+                    list_to_skip.append(fname.replace('regr', 'class'))
+                elif 'class' in fname:
+                    list_to_skip.append(fname.replace('class', 'regr'))
+                corpus = fname.split('.')[0].split('_')[0]
+                if corpus in label_to_range:
+                    predictions[corpus] = load_regr_class_predictions(
+                        cmd_args.predictions, fname=fname)
+                else:
+                    if 'regr' in fname:
+                        predictions[corpus] = load_regr_predictions(
+                            regr_pred_path=os.path.join(cmd_args.predictions, fname))
+                    else:
+                        continue
+            else:
+                corpus = fname.split('.')[0]
+                predictions[corpus] = load_predictions(cmd_args.predictions, fname=fname)
     elif os.path.isfile(cmd_args.predictions):
-        corpus = '_'.join(cmd_args.path.split('_')[:-1])
-        predictions[corpus] = load_predictions(cmd_args.predictions)
+        if 'regr' in cmd_args.predictions or 'class' in cmd_args.predictions:
+            fname = cmd_args.predictions.split('/')[-1]
+            # fname_regr = cmd_args.predictions
+            corpus = fname.split('.')[0].split('_')[0]
+            # class_preds = load_predictions(cmd_args.predictions)
+            predictions[corpus] = load_regr_class_predictions(cmd_args.predictions, fname=fname)
+        else:
+            corpus = '_'.join(cmd_args.path.split('_')[:-1])
+            predictions[corpus] = load_predictions(cmd_args.predictions)
+    # corpora = [c.replace('_regr', '').replace('class', '') for c in predictions.keys()]
     labels, label_mappings = load_labels(
         corpora=list(predictions.keys()),
         fname_labels=cmd_args.labels,
