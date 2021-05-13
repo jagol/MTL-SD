@@ -137,11 +137,11 @@ def main(cmd_args: argparse.Namespace) -> None:
         if not corpus_path:
             raise Exception(f'Corpus {corpus} not found in data-dir {args.data_dir}.')
         if cmd_args.kurtosis:
-            out_id = f'kurtosis_{cmd_args.kurtosis}'
+            out_id = f'kurtosis_{cmd_args.kurtosis}_{cmd_args.max_ds_size}'
         elif cmd_args.entropy:
-            out_id = f'entropy_{cmd_args.entropy}'
+            out_id = f'entropy_{cmd_args.entropy}_{cmd_args.max_ds_size}'
         else:
-            out_id = f'distr_{target_distr}'
+            out_id = f'distr_{target_distr}_{cmd_args.max_ds_size}'
         change_class_distr(corpus_path=corpus_path, target_distr=target_distr[corpus],
                            max_ds_size=cmd_args.max_ds_size, label_type=cmd_args.label_type,
                            out_id=out_id)
