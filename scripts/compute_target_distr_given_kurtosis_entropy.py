@@ -75,7 +75,7 @@ def adjust_class_distr_to_entropy(labels: List[int], entropy: float,
     print(f'Starting entropy: {cur_entropy}')
     if cur_entropy < entropy:
         while cur_entropy < entropy:
-            cur_labels = increase_kurtosis(cur_labels, step=1)
+            cur_labels = increase_entropy(cur_labels, step=1)
             cur_entropy = compute_entropy(cur_labels)
             count += 1
             if count % print_threshold == 0:
@@ -84,7 +84,7 @@ def adjust_class_distr_to_entropy(labels: List[int], entropy: float,
             print(f'Iterations: {count}, entropy: {cur_entropy:.3f}')
     elif cur_entropy > entropy:
         while cur_entropy > entropy:
-            cur_labels = decrease_kurtosis(cur_labels, step=1)
+            cur_labels = decrease_entropy(cur_labels, step=1)
             cur_entropy = compute_entropy(cur_labels)
             count += 1
             if count % print_threshold == 0:
