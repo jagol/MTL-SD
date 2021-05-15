@@ -176,8 +176,9 @@ class StanceHeadMSE(StanceHead):
         output = {'logits': logits, 'probs': pred_labels}
         if label is not None:
             pred_labels_tensor = torch.LongTensor(pred_labels)
-            self.metrics['accuracy'](pred_labels_tensor, label)
-            self.metrics['f1_macro'](pred_labels_tensor, label)
+            pred_labels_tensor_device = pred_labels_tensor.to(f'cuda:{logits.get_device()}')
+            self.metrics['accuracy'](pred_labels_tensor_device, label)
+            self.metrics['f1_macro'](pred_labels_tensor_device, label)
             output['loss'] = self.mse_loss(logits, label.float())
         return output
 
