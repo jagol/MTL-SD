@@ -1,5 +1,6 @@
 import json
-from typing import Dict, Iterable
+import os
+from typing import Dict, Iterable, List
 
 from allennlp.data import DatasetReader, Instance
 from allennlp.data.fields import LabelField, TextField
@@ -51,6 +52,75 @@ class StanceDetectionReader(DatasetReader):
 
     def encode_label(self, stance: str) -> LabelField:
         raise NotImplementedError
+
+
+@DatasetReader.register('UNIFIED')
+class UnifiedReader(StanceDetectionReader):
+    label_namespace = 'UNIFIED_labels'
+
+    def __init__(self,
+                 tokenizer: Tokenizer = None,
+                 token_indexers: Dict[str, TokenIndexer] = None,
+                 max_sequence_length: int = None,
+                 label_type: str = 'label_orig',
+                 corpora: List[str] = None,
+                 train_file: str = None,
+                 max_instances_per_corpus: int = 850,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.tokenizer = tokenizer
+        self.token_indexers = token_indexers or {'tokens': SingleIdTokenIndexer()}
+        self.max_sequence_length = max_sequence_length
+        self.label_type = label_type
+        self.corpora = corpora
+        self.train_file = train_file
+        self.dev_file = 'dev.jsonl'
+        self.max_instances_per_corpus = max_instances_per_corpus
+
+    def _read(self, data_path: str) -> Iterable[Instance]:
+        if data_path.endswith('train'):
+            self.mode = 'train'
+            data_path = data_path[:-5]
+        elif data_path.endswith('dev'):
+            self.mode = 'dev'
+            data_path = data_path[:-3]
+        else:
+            raise Exception('Invalid datapath.')
+        print(f'Mode: {self.mode}')
+        if self.mode == 'train':
+            files_open = [open(os.path.join(data_path, corpus, self.train_file)) for corpus in
+                          self.corpora]
+            instance_count = 0
+            while instance_count < self.max_instances_per_corpus:
+                for fopen in files_open:
+                    line = fopen.readline()
+                    if not line:
+                        files_open.remove(fopen)
+                    instance_dict = json.loads(line)
+                    target = instance_dict['text1']
+                    text = instance_dict['text2']
+                    label = instance_dict[self.label_type]
+                    yield self.text_to_instance(target, text, label)
+                instance_count += 1
+        else:
+            if self.mode == 'dev':
+                files_open = [open(os.path.join(data_path, corpus, self.dev_file)) for corpus in
+                              self.corpora]
+            elif self.mode == 'test':
+                files_open = [open(os.path.join(data_path, corpus, self.test_file)) for corpus in
+                              self.corpora]
+            else:
+                raise Exception('Wrong datapath name.')
+            for fopen in files_open:
+                for line in fopen:
+                    instance_dict = json.loads(line)
+                    target = instance_dict['text1']
+                    text = instance_dict['text2']
+                    label = instance_dict[self.label_type]
+                    yield self.text_to_instance(target, text, label)
+
+    def encode_label(self, stance: str) -> LabelField:
+        return LabelField(stance, self.label_namespace)
 
 
 @DatasetReader.register('arc')
@@ -277,6 +347,7 @@ DATASET_TO_READER = {
     'Snopes': SnopesReader,
     'SST': SSTReader,
     'STSB': STSBReader,
+    'UNIFIED': UnifiedReader,
     'TargetDepSA': TargetDepSAReader,
     'WNLI': WNLIReader,
 }
