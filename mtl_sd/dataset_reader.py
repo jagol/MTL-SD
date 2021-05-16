@@ -65,7 +65,7 @@ class UnifiedReader(StanceDetectionReader):
                  label_type: str = 'label_orig',
                  corpora: List[str] = None,
                  train_file: str = None,
-                 max_instances_per_corpus: int = 850,
+                 max_instances_per_corpus: int = 100000,
                  **kwargs):
         super().__init__(**kwargs)
         self.tokenizer = tokenizer
