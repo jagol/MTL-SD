@@ -41,8 +41,8 @@ def main(cmd_args: argparse.Namespace) -> None:
         if dataset not in results:
             print(f'Warning: Results for dataset {dataset} not used in output.')
 
-    accs = [results[dataset]['accuracy'] for dataset in results]
-    f1_macros = [results[dataset]['f1_macro'] for dataset in results]
+    accs = [results[dataset]['accuracy'] for dataset in results if results[dataset]]
+    f1_macros = [results[dataset]['f1_macro'] for dataset in results if results[dataset]]
 
     avg_acc = sum([n for n in accs if n]) / len([n for n in accs if n])
     avg_f1_macro = sum([n for n in f1_macros]) / len([n for n in f1_macros])
@@ -50,10 +50,11 @@ def main(cmd_args: argparse.Namespace) -> None:
     header = ['avg_acc', 'avg_f1_macro']
     row = [avg_acc, avg_f1_macro]
     for dataset in results:
-        header.append(dataset + '_acc')
-        header.append(dataset + '_f1_macro')
-        row.append(results[dataset]['accuracy'])
-        row.append(results[dataset]['f1_macro'])
+        if results[dataset]:
+            header.append(dataset + '_acc')
+            header.append(dataset + '_f1_macro')
+            row.append(results[dataset]['accuracy'])
+            row.append(results[dataset]['f1_macro'])
 
     print(','.join(header))
     print(','.join([str(r) for r in row]))

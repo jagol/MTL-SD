@@ -51,8 +51,16 @@ def load_corpus_labels(fpath_labels: str, dir_path_vocab: str, label_type: str
         for line in fin:
             test_instance = json.loads(line)
             label_str = test_instance[label_type]
-            task = test_instance['task']
-            label_int = voc.get_token_index(label_str, namespace=task + '_labels')
+            if label_type == 'label_orig':
+                task = test_instance['task']
+                label_int = voc.get_token_index(label_str, namespace=task + '_labels')
+            elif label_type == 'label_uni':
+                task = 'UNIFIED'
+                # if 'regr' in dir_path_vocab:
+                #     task += '_regr'
+                # else:
+                #     task += '_class'
+                label_int = voc.get_token_index(label_str, namespace=task + '_labels')
             labels.append(label_int)
             if label_str not in label_mapping:
                 label_mapping[label_int] = label_str
