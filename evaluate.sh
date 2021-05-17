@@ -25,7 +25,7 @@ then
 elif [[ "$5" == "rattle" ]]
 then
   data_dir="/srv/scratch0/jgoldz/mthesis/data"
-  results_dir="results"
+  results_dir="/srv/scratch0/jgoldz/mthesis/results"
 else
   echo "Unknown location: ${5}"
 fi
@@ -33,15 +33,22 @@ fi
 model_path="${results_dir}/${1}/model.tar.gz"
 mkdir "${results_dir}/${1}/predictions/"
 
-for dataset in ${tasks[@]}; do
-  data_path="${data_dir}/${dataset}/${2}"
-  path_output_file="${results_dir}/${1}/predictions/${dataset}.jsonl"
-  echo "Now processing dataset: $dataset"
-  echo "Data path set to: $data_path"
-  echo "Path to output file set to: $path_output_file"
-  echo "Predicting..."
-  allennlp predict $model_path $data_path --include-package mtl_sd --predictor multitask --cuda-device $3 --output-file $path_output_file --silent --predictor multitask_stance
-done
+# determine predictor
+if [[ "$1" == *"regr"* ]]; then
+  predictor="multitask_stance_regression"
+else
+  predictor="multitask_stance_classification"
+fi
+
+#for dataset in ${tasks[@]}; do
+#  data_path="${data_dir}/${dataset}/${2}"
+#  path_output_file="${results_dir}/${1}/predictions/${dataset}.jsonl"
+#  echo "Now processing dataset: $dataset"
+#  echo "Data path set to: $data_path"
+#  echo "Path to output file set to: $path_output_file"
+#  echo "Predicting..."
+#  allennlp predict $model_path $data_path --include-package mtl_sd --predictor multitask --cuda-device $3 --output-file $path_output_file --silent --predictor $predictor
+#done
 
 echo "Compute metrics for predictions..."
 python3 scripts/evaluate.py --predictions "${results_dir}/${1}/predictions/" --labels $2 --evaluation "${results_dir}/${1}/evaluation.json" --vocab "${results_dir}/${1}/vocabulary" --label_type $4 --data_dir $data_dir

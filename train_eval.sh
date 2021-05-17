@@ -45,6 +45,13 @@ echo "Setup evaluation."
 model_path="${results_dir}/${1}/model.tar.gz"
 mkdir "${results_dir}/${1}/predictions/"
 
+# determine predictor
+if [[ "$1" == *"regr"* ]]; then
+  predictor="multitask_stance_regression"
+else
+  predictor="multitask_stance_classification"
+fi
+
 for dataset in ${tasks[@]}; do
   data_path="${data_dir}/${dataset}/${2}"
   path_output_file="${results_dir}/${1}/predictions/${dataset}.jsonl"
@@ -52,7 +59,7 @@ for dataset in ${tasks[@]}; do
   echo "Data path set to: $data_path"
   echo "Path to output file set to: $path_output_file"
   echo "Predicting..."
-  allennlp predict $model_path $data_path --include-package mtl_sd --predictor multitask --cuda-device $3 --output-file $path_output_file --silent --predictor multitask_stance
+  allennlp predict $model_path $data_path --include-package mtl_sd --cuda-device $3 --output-file $path_output_file --silent --predictor $predictor
 done
 
 echo "Compute metrics for predictions..."
