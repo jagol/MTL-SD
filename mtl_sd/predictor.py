@@ -56,7 +56,7 @@ class MultiTaskStanceRegressionPredictor(MultiTaskStancePredictor):
     @overrides
     def _json_to_instance(self, json_dict: JsonDict) -> Instance:
         task = json_dict["task"]
-        if list(self.predictors.keys())[0] == 'UNIFIED':
+        if list(self.predictors.keys())[0] == 'UNIFIED_regr':
             task = 'UNIFIED'
         del json_dict["task"]
         task += '_regr'
@@ -75,7 +75,7 @@ class MultiTaskStanceClassificationPredictor(MultiTaskStancePredictor):
     @overrides
     def _json_to_instance(self, json_dict: JsonDict) -> Instance:
         task = json_dict["task"]
-        if list(self.predictors.keys())[0] == 'UNIFIED':
+        if list(self.predictors.keys())[0] == 'UNIFIED_class':
             task = 'UNIFIED'
         del json_dict["task"]
         task += '_class'
