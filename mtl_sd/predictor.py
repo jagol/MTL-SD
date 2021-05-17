@@ -2,7 +2,7 @@ import argparse
 from copy import deepcopy
 from typing import List, Dict, Optional, Any, Type
 
-from allennlp.common.checks import check_for_gpu, ConfigurationError
+from allennlp.common.checks import ConfigurationError
 from allennlp.data.dataset_readers import MultiTaskDatasetReader
 from overrides import overrides
 
@@ -56,6 +56,8 @@ class MultiTaskStanceRegressionPredictor(MultiTaskStancePredictor):
     @overrides
     def _json_to_instance(self, json_dict: JsonDict) -> Instance:
         task = json_dict["task"]
+        if list(self.predictors.keys())[0] == 'UNIFIED':
+            task = 'UNIFIED'
         del json_dict["task"]
         task += '_regr'
         predictor = self.predictors[task]
@@ -73,6 +75,8 @@ class MultiTaskStanceClassificationPredictor(MultiTaskStancePredictor):
     @overrides
     def _json_to_instance(self, json_dict: JsonDict) -> Instance:
         task = json_dict["task"]
+        if list(self.predictors.keys())[0] == 'UNIFIED':
+            task = 'UNIFIED'
         del json_dict["task"]
         task += '_class'
         predictor = self.predictors[task]
