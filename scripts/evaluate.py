@@ -64,6 +64,10 @@ def load_corpus_labels(fpath_labels: str, dir_path_vocab: str, label_type: str
             labels.append(label_int)
             if label_str not in label_mapping:
                 label_mapping[label_int] = label_str
+    if label_type == 'label_uni' and len(label_mapping) == 2:
+        label_int = max(label_mapping.keys()) + 1
+        label_str = 'other'
+        label_mapping[label_int] = label_str
     return labels, label_mapping
 
 
