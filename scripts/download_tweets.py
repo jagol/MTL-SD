@@ -26,7 +26,7 @@ def get_keys(path: str) -> Dict[str, str]:
 def main(cmd_args: argparse.Namespace):
     api = Api(**get_keys(cmd_args.keys))
     with open(cmd_args.inpath) as fin, open(cmd_args.outpath, 'w') as fout:
-        reader = csv.reader(fin, delimiter='\t')  # find better sol for delimiter
+        reader = csv.reader(fin, delimiter=cmd_args.separator)  # find better sol for delimiter
         writer = csv.writer(fout)
         for i, row in enumerate(reader):
             tweet_id = row[cmd_args.column]

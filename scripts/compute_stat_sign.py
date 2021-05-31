@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--path',
                         help='Path to input file containing test set results in csv.')
+    parser.add_argument('-t', '--temp', help='Path to temp file in tsv format copied out of excel.'
+                                             ' Alternativ to option "-p".')
     parser.add_argument('-i', '--iterations', type=int,
                         help='Number of bootstrapping samples to compute.')
     parser.add_argument('-v', '--value', type=int, help='Column index for result value.')
@@ -94,6 +96,21 @@ def load_population(args: argparse.Namespace) -> population_type:
     return population
 
 
+def load_population_from_temp_tsv(args: argparse.Namespace) -> population_type:
+    population = []
+    with open(args.temp) as fin:
+        reader = csv.reader(fin, delimiter='\t')
+        for label, value in reader:
+            population.append(
+                {
+                    # 'name': 'dummy',
+                    'value': float(value),
+                    'label': label
+                }
+            )
+    return population
+
+
 def get_label_from_name(name: str) -> str:
     aux_corpus = name.split('_')[1]
     return label_mapping[aux_corpus]
@@ -107,16 +124,25 @@ def compute_p_value(bootstrapped_test_stat: List[float], observerd_test_stat: fl
 
 def main():
     args = parse_args()
-    population = load_population(args)
+    if args.path:
+        population = load_population(args)
+    elif args.temp:
+        population = load_population_from_temp_tsv(args)
+    else:
+        raise Exception('Either --path or --temp must be specified.')
+
     # compute bootstrapped test statistics
     bs_test_statistics = bootstrap_test_statistics(population, args)
 
     # compute observed test statistics
     label_0, label_1 = list(set([p['label'] for p in population]))
+    print(f'Label_0: {label_0}')
+    print(f'Label_1: {label_1}')
     observed_test_statistic = compute_test_statistic(
         [p for p in population if p['label'] == label_0],
         [p for p in population if p['label'] == label_1]
     )
+    print(f'Observed test statistic: {observed_test_statistic}')
     p_val, over_observed = compute_p_value(bs_test_statistics, observed_test_statistic)
     print(f'Number of bootstrapped samples: {len(bs_test_statistics)}')
     print(f'Number of bootstrapped samples over observed sample: {over_observed}')
