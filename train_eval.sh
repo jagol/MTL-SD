@@ -49,7 +49,7 @@ mkdir "${results_dir}/${1}/predictions/"
 if [[ "$1" == *"regr"* ]]; then
   predictor="multitask_stance_regression"
 else
-  predictor="multitask_stance_classification"
+  predictor="multitask_stance"
 fi
 
 for dataset in ${tasks[@]}; do
