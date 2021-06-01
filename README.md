@@ -1,5 +1,13 @@
 # Multi-Task Learning for Stance Detection: Testing Auxiliary Datasets and Tasks
 
+
+## Code Structure
+
+- `configs`: subdirectories with the configurations defining the models for each experiment.
+- `mtl_sd`: classes defining the multi-task models.
+- `scripts`: preprocessing scripts, analysis scripts, a script to train and evaluate SVM-models and a subdirectory containing the code to create the figures of the thesis.
+
+
 ## Installation
 
 The scripts are tested with python 3.8.6.
